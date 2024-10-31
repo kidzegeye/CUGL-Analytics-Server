@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+python-server/.envrc
+python-server/.env
+/venv/
