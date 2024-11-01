@@ -34,3 +34,4 @@
 python-server/.envrc
 python-server/.env
 /venv/
+.DS_Store
