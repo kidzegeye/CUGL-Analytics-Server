@@ -33,5 +33,7 @@
 
 python-server/.envrc
 python-server/.env
-/venv/
+python-server/venv/
+python-server/dataset/
+
 .DS_Store
