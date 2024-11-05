@@ -8,6 +8,12 @@ class GameMetaData(models.Model):
 
 
 class Game(models.Model):
+    class Meta:
+        db_table = 'analytics_api_game'
+        constraints = [
+            models.UniqueConstraint(fields=['gamemetadata', 'version_number'], name='unique version')
+        ]
+
     gamemetadata = models.ForeignKey(GameMetaData, on_delete=models.CASCADE)
     version_number = models.TextField()
 
@@ -17,6 +23,11 @@ class User(models.Model):
         IOS = "iOS"
         ANDROID = "Android"
         OTHER = "Other"
+    class Meta:
+        db_table = 'analytics_api_user'
+        constraints = [
+            models.UniqueConstraint(fields=['game', 'vendor_id', 'platform'], name='unique user')
+        ]
 
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     vendor_id = models.TextField()
@@ -31,6 +42,12 @@ class Session(models.Model):
 
 
 class Task(models.Model):
+    class Meta:
+        db_table = 'analytics_api_task'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'name'], name='unique task')
+        ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.TextField()
 
@@ -43,6 +60,7 @@ class TaskAttempt(models.Model):
         NOTSTARTED = "NotStarted"
         PREEMPED = "Preempted"
 
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     started_at = models.DateTimeField(default=now)
     ended_at = models.DateTimeField()
