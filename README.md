@@ -4,8 +4,8 @@ CUGL Analytics Server M.Eng project
 ## Running the python server
 
 * Ensure you have [Python](https://www.python.org/downloads/) and [Pip](https://pip.pypa.io/en/stable/installation/) installed. 
-* First install Docker on your computer [here](https://docs.docker.com/engine/install/)
-* Then install Docker Compose [here](https://docs.docker.com/compose/install/)
+* First install [Docker](https://docs.docker.com/engine/install/) on your computer.
+* Then install [Docker Compose](https://docs.docker.com/compose/install/).
 * Enter the python-server directory and create a `.env` file.
   * Fill the `.env` file with the fields detailed in the `.env-template` file.
 * It is recommended to create a virtual environment to install dependencies. There are some instructions [here](https://www.arch.jhu.edu/python-virtual-environments/).
