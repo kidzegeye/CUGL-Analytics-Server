@@ -23,18 +23,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SK")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
-
 # Application definition
-
 INSTALLED_APPS = [
     "daphne",
     "channels",
-    "websocket.apps.WebsocketConfig",
+    "rest_framework",
+    "analytics_server.analytics_api.apps.AnalyticsApiConfig",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
