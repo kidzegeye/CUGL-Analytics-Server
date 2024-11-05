@@ -33,6 +33,8 @@ INSTALLED_APPS = [
     "daphne",
     "channels",
     "rest_framework",
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
     "analytics_server.analytics_api.apps.AnalyticsApiConfig",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,6 +44,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'CUGL Analytics Python API',
+    'DESCRIPTION': 'API for uploading and retrieving CUGL Analytics data',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+    'SCHEMA_PATH_PREFIX': r'/rest',
+
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

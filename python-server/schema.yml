@@ -1,0 +1,1379 @@
+openapi: 3.0.3
+info:
+  title: CUGL Analytics Python API
+  version: 1.0.0
+  description: API for uploading and retrieving CUGL Analytics data
+paths:
+  /rest/action/:
+    get:
+      operationId: rest_action_list
+      description: API endpoint that allows Actions to be viewed or edited.
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Action'
+          description: ''
+    post:
+      operationId: rest_action_create
+      description: API endpoint that allows Actions to be viewed or edited.
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Action'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Action'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Action'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+          description: ''
+  /rest/action/{id}/:
+    get:
+      operationId: rest_action_retrieve
+      description: API endpoint that allows Actions to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this action.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+          description: ''
+    put:
+      operationId: rest_action_update
+      description: API endpoint that allows Actions to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this action.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Action'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Action'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Action'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+          description: ''
+    patch:
+      operationId: rest_action_partial_update
+      description: API endpoint that allows Actions to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this action.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAction'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+          description: ''
+    delete:
+      operationId: rest_action_destroy
+      description: API endpoint that allows Actions to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this action.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /rest/game/:
+    get:
+      operationId: rest_game_list
+      description: API endpoint that allows Games to be viewed or edited.
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+          description: ''
+    post:
+      operationId: rest_game_create
+      description: API endpoint that allows Games to be viewed or edited.
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Game'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Game'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Game'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+          description: ''
+  /rest/game/{id}/:
+    get:
+      operationId: rest_game_retrieve
+      description: API endpoint that allows Games to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this game.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+          description: ''
+    put:
+      operationId: rest_game_update
+      description: API endpoint that allows Games to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this game.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Game'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Game'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Game'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+          description: ''
+    patch:
+      operationId: rest_game_partial_update
+      description: API endpoint that allows Games to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this game.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGame'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGame'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGame'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+          description: ''
+    delete:
+      operationId: rest_game_destroy
+      description: API endpoint that allows Games to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this game.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /rest/gamemetadata/:
+    get:
+      operationId: rest_gamemetadata_list
+      description: API endpoint that allows GameMetaData to be viewed or edited.
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameMetaData'
+          description: ''
+    post:
+      operationId: rest_gamemetadata_create
+      description: API endpoint that allows GameMetaData to be viewed or edited.
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameMetaData'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GameMetaData'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GameMetaData'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameMetaData'
+          description: ''
+  /rest/gamemetadata/{id}/:
+    get:
+      operationId: rest_gamemetadata_retrieve
+      description: API endpoint that allows GameMetaData to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this game meta data.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameMetaData'
+          description: ''
+    put:
+      operationId: rest_gamemetadata_update
+      description: API endpoint that allows GameMetaData to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this game meta data.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameMetaData'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GameMetaData'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GameMetaData'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameMetaData'
+          description: ''
+    patch:
+      operationId: rest_gamemetadata_partial_update
+      description: API endpoint that allows GameMetaData to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this game meta data.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGameMetaData'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGameMetaData'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGameMetaData'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameMetaData'
+          description: ''
+    delete:
+      operationId: rest_gamemetadata_destroy
+      description: API endpoint that allows GameMetaData to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this game meta data.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /rest/session/:
+    get:
+      operationId: rest_session_list
+      description: API endpoint that allows Sessions to be viewed or edited.
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Session'
+          description: ''
+    post:
+      operationId: rest_session_create
+      description: API endpoint that allows Sessions to be viewed or edited.
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Session'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Session'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+  /rest/session/{id}/:
+    get:
+      operationId: rest_session_retrieve
+      description: API endpoint that allows Sessions to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this session.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+    put:
+      operationId: rest_session_update
+      description: API endpoint that allows Sessions to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this session.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Session'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Session'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+    patch:
+      operationId: rest_session_partial_update
+      description: API endpoint that allows Sessions to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this session.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSession'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSession'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSession'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+    delete:
+      operationId: rest_session_destroy
+      description: API endpoint that allows Sessions to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this session.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /rest/task/:
+    get:
+      operationId: rest_task_list
+      description: API endpoint that allows Tasks to be viewed or edited.
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+          description: ''
+    post:
+      operationId: rest_task_create
+      description: API endpoint that allows Tasks to be viewed or edited.
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Task'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Task'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+          description: ''
+  /rest/task/{id}/:
+    get:
+      operationId: rest_task_retrieve
+      description: API endpoint that allows Tasks to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this task.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+          description: ''
+    put:
+      operationId: rest_task_update
+      description: API endpoint that allows Tasks to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this task.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Task'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Task'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Task'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+          description: ''
+    patch:
+      operationId: rest_task_partial_update
+      description: API endpoint that allows Tasks to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this task.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTask'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTask'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTask'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+          description: ''
+    delete:
+      operationId: rest_task_destroy
+      description: API endpoint that allows Tasks to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this task.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /rest/taskattempt/:
+    get:
+      operationId: rest_taskattempt_list
+      description: API endpoint that allows TaskAttempts to be viewed or edited.
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskAttempt'
+          description: ''
+    post:
+      operationId: rest_taskattempt_create
+      description: API endpoint that allows TaskAttempts to be viewed or edited.
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskAttempt'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TaskAttempt'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TaskAttempt'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskAttempt'
+          description: ''
+  /rest/taskattempt/{id}/:
+    get:
+      operationId: rest_taskattempt_retrieve
+      description: API endpoint that allows TaskAttempts to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this task attempt.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskAttempt'
+          description: ''
+    put:
+      operationId: rest_taskattempt_update
+      description: API endpoint that allows TaskAttempts to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this task attempt.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskAttempt'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TaskAttempt'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TaskAttempt'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskAttempt'
+          description: ''
+    patch:
+      operationId: rest_taskattempt_partial_update
+      description: API endpoint that allows TaskAttempts to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this task attempt.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTaskAttempt'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTaskAttempt'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTaskAttempt'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskAttempt'
+          description: ''
+    delete:
+      operationId: rest_taskattempt_destroy
+      description: API endpoint that allows TaskAttempts to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this task attempt.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /rest/user/:
+    get:
+      operationId: rest_user_list
+      description: API endpoint that allows Users to be viewed or edited.
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: ''
+    post:
+      operationId: rest_user_create
+      description: API endpoint that allows Users to be viewed or edited.
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /rest/user/{id}/:
+    get:
+      operationId: rest_user_retrieve
+      description: API endpoint that allows Users to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: rest_user_update
+      description: API endpoint that allows Users to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: rest_user_partial_update
+      description: API endpoint that allows Users to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - rest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: rest_user_destroy
+      description: API endpoint that allows Users to be viewed or edited.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - rest
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    Action:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        json_blob: {}
+        timestamp:
+          type: string
+          format: date-time
+        session:
+          type: integer
+        task_attempt:
+          type: integer
+          nullable: true
+      required:
+      - id
+      - session
+    Game:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        version_number:
+          type: string
+        gamemetadata:
+          type: integer
+      required:
+      - gamemetadata
+      - id
+      - version_number
+    GameMetaData:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        package_name:
+          type: string
+        game_name:
+          type: string
+      required:
+      - game_name
+      - id
+      - package_name
+    PatchedAction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        json_blob: {}
+        timestamp:
+          type: string
+          format: date-time
+        session:
+          type: integer
+        task_attempt:
+          type: integer
+          nullable: true
+    PatchedGame:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        version_number:
+          type: string
+        gamemetadata:
+          type: integer
+    PatchedGameMetaData:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        package_name:
+          type: string
+        game_name:
+          type: string
+    PatchedSession:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        ended:
+          type: boolean
+          default: false
+        user:
+          type: integer
+    PatchedTask:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        user:
+          type: integer
+    PatchedTaskAttempt:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        num_failures:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        statistics: {}
+        task:
+          type: integer
+        session:
+          type: integer
+    PatchedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        vendor_id:
+          type: string
+        platform:
+          $ref: '#/components/schemas/PlatformEnum'
+        game:
+          type: integer
+    PlatformEnum:
+      enum:
+      - ios
+      - android
+      - other
+      type: string
+      description: |-
+        * `ios` - Ios
+        * `android` - Android
+        * `other` - Other
+    Session:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        ended:
+          type: boolean
+          default: false
+        user:
+          type: integer
+      required:
+      - id
+      - user
+    StatusEnum:
+      enum:
+      - succeeded
+      - failed
+      - pending
+      - notstarted
+      - preempted
+      type: string
+      description: |-
+        * `succeeded` - Succeeded
+        * `failed` - Failed
+        * `pending` - Pending
+        * `notstarted` - Notstarted
+        * `preempted` - Preemped
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        user:
+          type: integer
+      required:
+      - id
+      - name
+      - user
+    TaskAttempt:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        num_failures:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        statistics: {}
+        task:
+          type: integer
+        session:
+          type: integer
+      required:
+      - id
+      - session
+      - status
+      - task
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        vendor_id:
+          type: string
+        platform:
+          $ref: '#/components/schemas/PlatformEnum'
+        game:
+          type: integer
+      required:
+      - game
+      - id
+      - platform
+      - vendor_id
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

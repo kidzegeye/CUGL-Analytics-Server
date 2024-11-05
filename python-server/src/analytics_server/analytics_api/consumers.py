@@ -42,10 +42,10 @@ class RecordActionConsumer(WebsocketConsumer):
 
         Message format:
         {
-            task_attempt_id: [task_attempt_id], (optional)
-            data: {
-                    [fields of your choosing]
-                  }
+            "task_attempt_id": <(optional) task_attempt_id>,
+            "data": {
+                    <fields of your choosing>
+                    }
         }
         """
         if Session.objects.get(id=self.session.id).ended:
