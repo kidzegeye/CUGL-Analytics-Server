@@ -1,0 +1,12 @@
+services:
+  lobby:
+    image: chalo2000/cugl-lobby
+    ports:
+      - "8080:8080"
+
+  violet:
+    image: chalo2000/violet
+    command: "--credentials=TEST:PASS"
+    ports:
+      - "3478:3478"
+      - "3478:3478/udp"
