@@ -37,3 +37,5 @@ python-server/venv/
 python-server/dataset/
 
 .DS_Store
+/__pycache__/
+NetLab/build/
