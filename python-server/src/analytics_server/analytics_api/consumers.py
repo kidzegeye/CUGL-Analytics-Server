@@ -3,23 +3,16 @@ from analytics_server.analytics_api.models import GameMetaData, Game, User, Sess
 from analytics_server.analytics_api.serializers import GameMetaDataSerializer, GameSerializer, UserSerializer, SessionSerializer, TaskSerializer, TaskAttemptSerializer, ActionSerializer
 from channels.generic.websocket import WebsocketConsumer
 from django.utils.timezone import now
-
+from django.db.utils import IntegrityError
 
 class MainConsumer(WebsocketConsumer):
-    session = None
 
     def connect(self):
         """
         Starts the websocket connection
         """
         self.accept()
-        #session_id = self.scope["url_route"]["kwargs"]["session_id"]
-
-        #self.session = Session.objects.filter(id=session_id, ended=False).first()
-        # if not self.session:
-        #     self.send(close=True, text_data=json.dumps(
-        #         {"error": f"No active sessions for session_id {session_id} found."}))
-        #     return
+        self.session = None
 
     def disconnect(self, close_code):
         """
@@ -42,7 +35,7 @@ class MainConsumer(WebsocketConsumer):
         Receives a message on the websocket for recording an action
 
         Message format:
-        {   "message_type" : <game_meta_data|game|user|session|task|task_attempt|action>
+        {   "message_type" : <game_meta_data|game|user|session|task|task_attempt|sync_task_attempt|action>
             "message_payload": {
                 "task_attempt_id": <(optional) task_attempt_id>,
                 "data": {
@@ -96,7 +89,7 @@ class MainConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        game = Game.objects.create(gamemetadata=payload["gamemetadata"],
+        game = Game.objects.create(gamemetadata_id=payload["gamemetadata"],
                                    version_number=payload["version_number"]
                                    )
         serialized_game = dict(GameSerializer(game).data)
@@ -109,11 +102,12 @@ class MainConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        if payload["platform"] not in ["ios", "android", "other"]:
-            self.send(text_data=json.dumps({"error": f"Invalid platform: {payload["platform"]}.\
+        if not any(payload["platform"] in choice for choice in User.Platform.choices):
+            self.send(text_data=json.dumps({"error": f"Invalid platform: '{payload['platform']}'.\
+                                                       Must be one of {User.Platform.choices}\
                                                                Not processing request."}))
             return
-        user = User.objects.create(game=payload["game"],
+        user = User.objects.create(game_id=payload["game"],
                                    vendor_id=payload["vendor_id"],
                                    platform=payload["platform"]
                                    )
@@ -127,18 +121,24 @@ class MainConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        self.session = Session.objects.create(user=payload["user"])
+        temp_session = Session.objects.filter(user_id=payload["user"], ended=False).last()
+        if temp_session is not None:
+            self.session = temp_session
+            self.send(text_data=json.dumps({"error": f"Active session already exists.\
+                                                               Not processing request."}))
+            return
+        self.session = Session.objects.create(user_id=payload["user"])
         serialized_session = dict(SessionSerializer(self.session).data)
         self.send(text_data=json.dumps({"message": "Session started",
                                         "data": serialized_session}))
 
     def handle_task(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["user","name"])
+        missing_fields, fields = self.check_fields(payload, ["user", "name"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        task = Task.objects.create(user=payload["user"], name=payload["name"])
+        task = Task.objects.create(user_id=payload["user"], name=payload["name"])
         serialized_task = dict(TaskSerializer(task).data)
         self.send(text_data=json.dumps({"message": "Task recorded",
                                         "data": serialized_task}))
@@ -149,8 +149,8 @@ class MainConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        task_attempt = TaskAttempt.objects.create(task=payload["task"],
-                                                  session=payload["session"],
+        task_attempt = TaskAttempt.objects.create(task_id=payload["task"],
+                                                  session_id=payload["session"],
                                                   status="notstarted",
                                                   statistics=payload["statistics"])
         serialized_task_attempt = dict(TaskAttemptSerializer(task_attempt).data)
@@ -164,30 +164,35 @@ class MainConsumer(WebsocketConsumer):
                                                                Not processing request."}))
             return
 
-        if payload["status"] not in ["succeeded", "failed", "pending", "notstarted", "preempted"]:
-            self.send(text_data=json.dumps({"error": f"Invalid status: {payload["platform"]}.\
+        if not any(payload["status"] in choice for choice in TaskAttempt.Status.choices):
+            self.send(text_data=json.dumps({"error": f"Invalid status: '{payload['status']}'.\
+                                                       Must be one of {TaskAttempt.Status.choices}\
                                                                Not processing request."}))
             return
 
-        task_attempt = TaskAttempt.filter(id=payload["task_attempt"]).first()
-        if not task_attempt.exists():
-            self.send(text_data=json.dumps({"error": f"Task Attempt not found: {payload["task_attempt"]}.\
+        task_attempt = TaskAttempt.objects.filter(id=payload["task_attempt"]).first()
+        if task_attempt is None:
+            self.send(text_data=json.dumps({"error": f"Task Attempt not found: {payload['task_attempt']}.\
                                                                Not processing request."}))
             return
 
         task_attempt.status = payload["status"]
         task_attempt.statistics = payload["statistics"]
-        task_attempt.num_failure = payload["num_failures"]
+        task_attempt.num_failures = payload["num_failures"]
         if payload["status"] in ["succeeded", "failed", "preempted"]:
-            task_attempt.ended_at(now())
+            task_attempt.ended_at = now()
         task_attempt.save()
         serialized_task_attempt = dict(TaskAttemptSerializer(task_attempt).data)
         self.send(text_data=json.dumps({"message": "Task Attempt synced",
                                         "data": serialized_task_attempt}))
 
     def handle_action(self, payload):
+        if self.session is None:
+            self.send(close=True, text_data=json.dumps({"error": "No active session found.\
+                                                               Not processing request."}))
+            return
         if Session.objects.get(id=self.session.id).ended:
-            self.send(close=True, text_data=json.dumps({"error": "Session ended unexpectedly.\
+            self.send(close=True, text_data=json.dumps({"error": "Latest session is not active, please start a new one.\
                                                                Not processing request."}))
             return
 
