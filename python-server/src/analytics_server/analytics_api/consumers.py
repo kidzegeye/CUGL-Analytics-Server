@@ -3,7 +3,7 @@ from analytics_server.analytics_api.models import GameMetaData, Game, User, Sess
 from analytics_server.analytics_api.serializers import GameMetaDataSerializer, GameSerializer, UserSerializer, SessionSerializer, TaskSerializer, TaskAttemptSerializer, ActionSerializer
 from channels.generic.websocket import WebsocketConsumer
 from django.utils.timezone import now
-from django.db.utils import IntegrityError
+
 
 class MainConsumer(WebsocketConsumer):
 
@@ -124,7 +124,7 @@ class MainConsumer(WebsocketConsumer):
         temp_session = Session.objects.filter(user_id=payload["user"], ended=False).last()
         if temp_session is not None:
             self.session = temp_session
-            self.send(text_data=json.dumps({"error": f"Active session already exists.\
+            self.send(text_data=json.dumps({"error": "Active session already exists.\
                                                                Not processing request."}))
             return
         self.session = Session.objects.create(user_id=payload["user"])
