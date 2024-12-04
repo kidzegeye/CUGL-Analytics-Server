@@ -240,6 +240,10 @@ class MainConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({"error": f"Task Attempt not found: {payload['task_attempt_uuid']}.\
                                                                Not processing request."}))
             return
+        if task_attempt.status in ["succeeded", "failed", "preempted"] and task_attempt.status != payload["status"]:
+            self.send(text_data=json.dumps({"error": f"Can not change already ended Task Attempt status: {task_attempt.status} != {payload['status']}.\
+                                                               Not processing request."}))
+            return
 
         task_attempt.status = payload["status"]
         task_attempt.statistics = payload["statistics"]

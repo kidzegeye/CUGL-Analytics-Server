@@ -29,7 +29,31 @@ class Task
 {
 private:
     std::string _name;
-    std::string _uuid; // use hashtool::generate_uuid();
+    std::string _uuid;
+     
+    Task() : _name(""), _uuid("") {}
+
+    ~Task() { dispose(); }
+
+private:
+    void dispose() {
+        _name = "";
+        _uuid = "";
+    }
+    bool init(std::string name){
+        _name = name;
+        _uuid = hashtool::generate_uuid();
+    }; 
+
+public:
+    static std::shared_ptr<Task> alloc(std::string name)
+    {
+        std::shared_ptr<Task> result = std::make_shared<Task>();
+        return (result->init(name) ? result : nullptr);
+    }
+
+    std::string getName() const { return _name; }
+    std::string getUUID() const { return _uuid; }
 };
 
 class TaskAttempt
@@ -45,7 +69,6 @@ public:
         NOT_STARTED
     };
 
-    void setTaskStatus(Status status);
 
     struct Statistics
     {
@@ -54,13 +77,25 @@ public:
         std::unordered_map<std::string, bool> booleanStatistics;
     };
 
-    TaskAttempt(const std::shared_ptr<Task> task);
+    TaskAttempt();
+    ~TaskAttempt();
+
+private:
+    void dispose();
+    bool init(const std::shared_ptr<Task> task); 
+
+public:
+    static std::shared_ptr<TaskAttempt> alloc(const std::shared_ptr<Task> task)
+    {
+        std::shared_ptr<TaskAttempt> result = std::make_shared<TaskAttempt>();
+        return (result->init(task) ? result : nullptr);
+    }
 
     void setNumFailures(int num);
-    int getNumFailures() const;
     bool getIsActive() const;
     std::string getStartTime() const;
     std::string getEndTime() const;
+    void setTaskStatus(Status status);
     Status getStatus() const;
     void setStatistics() const;
 
