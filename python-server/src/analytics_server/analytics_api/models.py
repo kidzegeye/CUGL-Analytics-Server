@@ -55,11 +55,12 @@ class Task(models.Model):
     class Meta:
         db_table = 'analytics_api_task'
         constraints = [
-            models.UniqueConstraint(fields=['user', 'name'], name='unique task')
+            models.UniqueConstraint(fields=['user', 'task_name'], name='unique task')
         ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.TextField()
+    task_uuid = models.TextField(unique=True)
+    task_name = models.TextField()
 
 
 class TaskAttempt(models.Model):
@@ -71,6 +72,7 @@ class TaskAttempt(models.Model):
         PREEMPED = "preempted"
 
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task_attempt_uuid = models.TextField()
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     started_at = models.DateTimeField(default=now)
     ended_at = models.DateTimeField(null=True, blank=True)

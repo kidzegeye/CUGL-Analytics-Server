@@ -37,10 +37,7 @@ class MainConsumer(WebsocketConsumer):
         Message format:
         {   "message_type" : <game_meta_data|game|user|session|task|task_attempt|sync_task_attempt|action>
             "message_payload": {
-                "task_attempt_id": <(optional) task_attempt_id>,
-                "data": {
-                    <fields of your choosing>
-                 }
+                <message_type specific fields>
             }
             
         }
@@ -76,28 +73,34 @@ class MainConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        game_meta_data = GameMetaData.objects.create(package_name=payload["package_name"],
-                                                     game_name=payload["game_name"]
-                                                     )
+        
+        game_meta_data, _ = GameMetaData.objects.get_or_create(package_name=payload["package_name"],
+                                                               game_name=payload["game_name"]
+                                                               )
         serialized_game_meta_data = dict(GameMetaDataSerializer(game_meta_data).data)
         self.send(text_data=json.dumps({"message": "Game Metadata recorded",
                                         "data": serialized_game_meta_data}))
 
     def handle_game(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["gamemetadata", "version_number"])
+        missing_fields, fields = self.check_fields(payload, ["package_name", "version_number"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        game = Game.objects.create(gamemetadata_id=payload["gamemetadata"],
-                                   version_number=payload["version_number"]
-                                   )
+        gamemetadata = GameMetaData.objects.filter(package_name=payload["package_name"]).first()
+        if not gamemetadata:
+            self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['package_name']}'.\
+                                                               Not processing request."}))
+            return
+        game, _ = Game.objects.get_or_create(gamemetadata=gamemetadata,
+                                             version_number=payload["version_number"]
+                                             )
         serialized_game = dict(GameSerializer(game).data)
         self.send(text_data=json.dumps({"message": "Game recorded",
                                         "data": serialized_game}))
 
     def handle_user(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["game", "vendor_id", "platform"])
+        missing_fields, fields = self.check_fields(payload, ["package_name", "version_number", "vendor_id", "platform"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
@@ -107,58 +110,120 @@ class MainConsumer(WebsocketConsumer):
                                                        Must be one of {User.Platform.choices}\
                                                                Not processing request."}))
             return
-        user = User.objects.create(game_id=payload["game"],
-                                   vendor_id=payload["vendor_id"],
-                                   platform=payload["platform"]
-                                   )
+        gamemetadata = GameMetaData.objects.filter(package_name=payload["package_name"]).first()
+        if not gamemetadata:
+            self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['package_name']}'.\
+                                                               Not processing request."}))
+            return
+        game = Game.objects.filter(gamemetadata=gamemetadata, version_number=payload["version_number"]).first()
+        if not game:
+            self.send(text_data=json.dumps({"error": f"Game does not exist: '{payload['package_name']} version {payload['version_number']}'.\
+                                                               Not processing request."}))
+            return
+        user, _ = User.objects.get_or_create(game=game,
+                                             vendor_id=payload["vendor_id"],
+                                             platform=payload["platform"]
+                                             )
         serialized_user = dict(UserSerializer(user).data)
         self.send(text_data=json.dumps({"message": "User recorded",
                                         "data": serialized_user}))
 
     def handle_session(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["user"])
+        missing_fields, fields = self.check_fields(payload, ["package_name", "version_number", "vendor_id", "platform"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        temp_session = Session.objects.filter(user_id=payload["user"], ended=False).last()
-        if temp_session is not None:
-            self.session = temp_session
-            self.send(text_data=json.dumps({"error": "Active session already exists.\
+        if not any(payload["platform"] in choice for choice in User.Platform.choices):
+            self.send(text_data=json.dumps({"error": f"Invalid platform: '{payload['platform']}'.\
+                                                       Must be one of {User.Platform.choices}\
                                                                Not processing request."}))
             return
-        self.session = Session.objects.create(user_id=payload["user"])
+
+        gamemetadata = GameMetaData.objects.filter(package_name=payload["package_name"]).first()
+        if not gamemetadata:
+            self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['package_name']}'.\
+                                                               Not processing request."}))
+            return
+        game = Game.objects.filter(gamemetadata=gamemetadata, version_number=payload["version_number"]).first()
+        if not game:
+            self.send(text_data=json.dumps({"error": f"Game does not exist: '{payload['package_name']} version {payload['version_number']}'.\
+                                                               Not processing request."}))
+            return
+        user = User.objects.filter(game=game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
+        if not user:
+            self.send(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['package_name']} version {payload['version_number']}'.\
+                                                               Not processing request."}))
+            return
+        temp_session = Session.objects.filter(user=user, ended=False).last()
+        if temp_session is not None:
+            self.session = temp_session
+            self.send(text_data=json.dumps({"error": "Active session already exists, using that session"}))
+            return
+        self.session = Session.objects.create(user=user)
         serialized_session = dict(SessionSerializer(self.session).data)
         self.send(text_data=json.dumps({"message": "Session started",
                                         "data": serialized_session}))
 
     def handle_task(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["user", "name"])
+        missing_fields, fields = self.check_fields(payload, ["package_name", "version_number", "vendor_id", "platform", "task_uuid", "task_name"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        task = Task.objects.create(user_id=payload["user"], name=payload["name"])
+        if not any(payload["platform"] in choice for choice in User.Platform.choices):
+            self.send(text_data=json.dumps({"error": f"Invalid platform: '{payload['platform']}'.\
+                                                       Must be one of {User.Platform.choices}\
+                                                               Not processing request."}))
+            return
+
+        gamemetadata = GameMetaData.objects.filter(package_name=payload["package_name"]).first()
+        if not gamemetadata:
+            self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['package_name']}'.\
+                                                               Not processing request."}))
+            return
+        game = Game.objects.filter(gamemetadata=gamemetadata, version_number=payload["version_number"]).first()
+        if not game:
+            self.send(text_data=json.dumps({"error": f"Game does not exist: '{payload['package_name']} version {payload['version_number']}'.\
+                                                               Not processing request."}))
+            return
+        user = User.objects.filter(game=game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
+        if not user:
+            self.send(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['package_name']} version {payload['version_number']}'.\
+                                                               Not processing request."}))
+            return
+        task, _ = Task.objects.get_or_create(user=user, task_uuid=payload["task_uuid"], task_name=payload["task_name"])
         serialized_task = dict(TaskSerializer(task).data)
         self.send(text_data=json.dumps({"message": "Task recorded",
                                         "data": serialized_task}))
 
     def handle_task_attempt(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["task", "session", "statistics"])
+        missing_fields, fields = self.check_fields(payload, ["task_uuid", "task_attempt_uuid", "statistics"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        task_attempt = TaskAttempt.objects.create(task_id=payload["task"],
-                                                  session_id=payload["session"],
-                                                  status="notstarted",
-                                                  statistics=payload["statistics"])
+        task = Task.objects.filter(task_uuid=payload["task_uuid"]).first()
+        if not task:
+            self.send(text_data=json.dumps({"error": f"Task does not exist: '{payload['task_uuid']}'.\
+                                                               Not processing request."}))
+            return
+        session = Session.objects.filter(user=task.user, ended=False).last()
+        if not session:
+            self.send(text_data=json.dumps({"error": "Active session does not exist. Not processing request."}))
+            return
+        task_attempt, _ = TaskAttempt.objects.get_or_create(
+                                                        task=task,
+                                                        task_attempt_uuid=payload["task_attempt_uuid"],
+                                                        session=session,
+                                                        status="notstarted",
+                                                        statistics=payload["statistics"])
         serialized_task_attempt = dict(TaskAttemptSerializer(task_attempt).data)
         self.send(text_data=json.dumps({"message": "Task Attempt recorded",
                                         "data": serialized_task_attempt}))
 
     def handle_sync_task_attempt(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["task_attempt", "status", "statistics", "num_failures"])
+        missing_fields, fields = self.check_fields(payload, ["task_attempt_uuid", "status", "statistics", "num_failures"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
@@ -170,9 +235,9 @@ class MainConsumer(WebsocketConsumer):
                                                                Not processing request."}))
             return
 
-        task_attempt = TaskAttempt.objects.filter(id=payload["task_attempt"]).first()
+        task_attempt = TaskAttempt.objects.filter(task_attempt_uuid=payload["task_attempt_uuid"]).first()
         if task_attempt is None:
-            self.send(text_data=json.dumps({"error": f"Task Attempt not found: {payload['task_attempt']}.\
+            self.send(text_data=json.dumps({"error": f"Task Attempt not found: {payload['task_attempt_uuid']}.\
                                                                Not processing request."}))
             return
 
@@ -203,17 +268,17 @@ class MainConsumer(WebsocketConsumer):
             return
 
         task_attempt = None
-        if payload.get("task_attempt_id") is not None:
-            task_attempt = TaskAttempt.objects.filter(id=payload.get("task_attempt_id")).first()
+        if payload.get("task_attempt_uuid") is not None:
+            task_attempt = TaskAttempt.objects.filter(task_attempt_uuid=payload["task_attempt_uuid"]).first()
             if not task_attempt:
                 self.send(text_data=json.dumps(
-                    {"error": f"Task attempt with id {payload.get('task_attempt_id')} not found.\
+                    {"error": f"Task attempt with id '{payload['task_attempt_uuid']}' not found.\
                       Not processing request."}))
                 return
 
         action = Action.objects.create(session=self.session,
                                        task_attempt=task_attempt,
-                                       json_blob=payload.get("data")
+                                       json_blob=payload["data"]
                                        )
         serialized_action = dict(ActionSerializer(action).data)
         self.send(text_data=json.dumps({"message": "Action recorded",
