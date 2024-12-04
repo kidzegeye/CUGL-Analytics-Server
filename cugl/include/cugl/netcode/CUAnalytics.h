@@ -79,18 +79,44 @@ namespace cugl
                     std::unordered_map<std::string, bool> booleanStatistics;
                 };
 
-                TaskAttempt();
-                ~TaskAttempt();
+                TaskAttempt() : 
+                _task(nullptr),
+                _uuid(""),
+                _taskStatistics(nullptr),
+                _numFailures(0),
+                _status(Status::NOT_STARTED),
+                _startTime(""),
+                _endTime("") {}
 
+                ~TaskAttempt() { dispose(); }
+                
             private:
-                void dispose();
-                bool init(const std::shared_ptr<Task> task);
+                void dispose() {
+                    _task = nullptr;
+                    _uuid = "";
+                    _taskStatistics = nullptr;
+                    _numFailures = 0;
+                    _status = Status::NOT_STARTED;
+                    _startTime = "";
+                    _endTime = "";
+                };
+
+                bool init(const std::shared_ptr<Task> task, std::shared_ptr<Statistics> taskStatistics) {
+                    _task = task;
+                    _uuid = hashtool::generate_uuid();
+                    _taskStatistics = taskStatistics;
+                    _numFailures = 0;
+                    _status = Status::NOT_STARTED;
+                    _startTime = "";
+                    _endTime = "";
+
+                };
 
             public:
-                static std::shared_ptr<TaskAttempt> alloc(const std::shared_ptr<Task> task)
+                static std::shared_ptr<TaskAttempt> alloc(const std::shared_ptr<Task> task, std::shared_ptr<Statistics> taskStatistics)
                 {
                     std::shared_ptr<TaskAttempt> result = std::make_shared<TaskAttempt>();
-                    return (result->init(task) ? result : nullptr);
+                    return (result->init(task, taskStatistics) ? result : nullptr);
                 }
 
                 void setNumFailures(int num);
@@ -102,8 +128,8 @@ namespace cugl
                 void setStatistics() const;
 
             private:
-                std::string _name;
-                std::string _uuid; // use hashtool::generate_uuid();
+                std::shared_ptr<Task> _task;
+                std::string _uuid;
                 std::shared_ptr<Statistics> _taskStatistics;
                 int _numFailures;
                 Status _status;
