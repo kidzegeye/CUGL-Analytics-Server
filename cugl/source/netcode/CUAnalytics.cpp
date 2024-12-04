@@ -94,6 +94,7 @@ bool AnalyticsConnection::init(const InetAddress &address, bool secure = false)
         CULogError(ex.what());
         return false;
     }
+    return true;
 }
 
 void AnalyticsConnection::dispose()

@@ -130,6 +130,9 @@ namespace cugl
 
                 void close();
 
+            private:
+                void send(std::shared_ptr<JsonValue> &data); // This is the helper function to send data
+
 #pragma mark Static Allocators
 
             public:
@@ -163,7 +166,7 @@ namespace cugl
                 void addTaskAttempt(const std::shared_ptr<TaskAttempt> &TaskAttempt);
                 // void endTask(const std::shared_ptr<Task> &task);
                 void syncTaskAttempt(const std::shared_ptr<TaskAttempt> &TaskAttempt);
-                void recordAction(const cugl::JsonValue actionBlob); // Add Action Data here
+                void recordAction(const std::shared_ptr<JsonValue> &actionBlob); // Add Action Data here
 
             private:
                 std::shared_ptr<WebSocket> _webSocket;
