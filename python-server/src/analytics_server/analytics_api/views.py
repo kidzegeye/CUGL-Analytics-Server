@@ -2,12 +2,12 @@ from rest_framework import viewsets
 from analytics_server.analytics_api import models, serializers
 
 
-class GameMetaDataViewSet(viewsets.ModelViewSet):
+class OrganizationViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows GameMetaData to be viewed or edited.
+    API endpoint that allows Organization to be viewed or edited.
     """
-    queryset = models.GameMetaData.objects.all()
-    serializer_class = serializers.GameMetaDataSerializer
+    queryset = models.Organization.objects.all()
+    serializer_class = serializers.OrganizationSerializer
 
 
 class GameViewSet(viewsets.ModelViewSet):

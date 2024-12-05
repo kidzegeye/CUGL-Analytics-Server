@@ -1,6 +1,6 @@
 import json
-from analytics_server.analytics_api.models import GameMetaData, Game, User, Session, Task, TaskAttempt, Action
-from analytics_server.analytics_api.serializers import GameMetaDataSerializer, GameSerializer, UserSerializer, SessionSerializer, TaskSerializer, TaskAttemptSerializer, ActionSerializer
+from analytics_server.analytics_api.models import Organization, Game, User, Session, Task, TaskAttempt, Action
+from analytics_server.analytics_api.serializers import OrganizationSerializer, GameSerializer, UserSerializer, SessionSerializer, TaskSerializer, TaskAttemptSerializer, ActionSerializer
 from channels.generic.websocket import WebsocketConsumer
 from django.utils.timezone import now
 
@@ -64,24 +64,18 @@ class MainConsumer(WebsocketConsumer):
                 self.handle_action(payload["message_payload"])
 
     def handle_init(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["package_name", "game_name", "version_number", "vendor_id", "platform"])
+        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
 
-        if not any(payload["platform"] in choice for choice in User.Platform.choices):
-            self.send(text_data=json.dumps({"error": f"Invalid platform: '{payload['platform']}'.\
-                                                       Must be one of {User.Platform.choices}\
-                                                               Not processing request."}))
-            return
-
-        gamemetadata, _ = GameMetaData.objects.get_or_create(package_name=payload["package_name"],
-                                                             game_name=payload["game_name"]
+        organization, _ = Organization.objects.get_or_create(organization_name=payload["organization_name"]
                                                              )
-        serialized_gamemetadata = dict(GameMetaDataSerializer(gamemetadata).data)
+        serialized_organization = dict(OrganizationSerializer(organization).data)
 
-        game, _ = Game.objects.get_or_create(gamemetadata=gamemetadata,
+        game, _ = Game.objects.get_or_create(organization=organization,
+                                             game_name=payload["game_name"],
                                              version_number=payload["version_number"]
                                              )
         serialized_game = dict(GameSerializer(game).data)
@@ -93,30 +87,25 @@ class MainConsumer(WebsocketConsumer):
         serialized_user = dict(UserSerializer(user).data)
         self.send(text_data=json.dumps({"message": "Init recorded",
                                         "data": {
-                                            "gamemetadata": serialized_gamemetadata,
+                                            "organization": serialized_organization,
                                             "game": serialized_game,
                                             "user": serialized_user
                                             }
                                         }))
 
     def handle_session(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["package_name", "version_number", "vendor_id", "platform"])
+        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        if not any(payload["platform"] in choice for choice in User.Platform.choices):
-            self.send(text_data=json.dumps({"error": f"Invalid platform: '{payload['platform']}'.\
-                                                       Must be one of {User.Platform.choices}\
-                                                               Not processing request."}))
-            return
-
-        gamemetadata = GameMetaData.objects.filter(package_name=payload["package_name"]).first()
-        if not gamemetadata:
+        
+        organization = Organization.objects.filter(organization_name=payload["organization_name"]).first()
+        if not organization:
             self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['package_name']}'.\
                                                                Not processing request."}))
             return
-        game = Game.objects.filter(gamemetadata=gamemetadata, version_number=payload["version_number"]).first()
+        game = Game.objects.filter(organization=organization, game_name=payload["game_name"], version_number=payload["version_number"]).first()
         if not game:
             self.send(text_data=json.dumps({"error": f"Game does not exist: '{payload['package_name']} version {payload['version_number']}'.\
                                                                Not processing request."}))
@@ -129,31 +118,24 @@ class MainConsumer(WebsocketConsumer):
         temp_session = Session.objects.filter(user=user, ended=False).last()
         if temp_session is not None:
             self.session = temp_session
-            self.send(text_data=json.dumps({"error": "Active session already exists, using that session"}))
-            return
         self.session = Session.objects.create(user=user)
         serialized_session = dict(SessionSerializer(self.session).data)
         self.send(text_data=json.dumps({"message": "Session started",
                                         "data": serialized_session}))
 
     def handle_task(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["package_name", "version_number", "vendor_id", "platform", "task_uuid", "task_name"])
+        missing_fields, fields = self.check_fields(payload, ["organization_name","game_name", "version_number", "vendor_id", "platform", "task_uuid", "task_name"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        if not any(payload["platform"] in choice for choice in User.Platform.choices):
-            self.send(text_data=json.dumps({"error": f"Invalid platform: '{payload['platform']}'.\
-                                                       Must be one of {User.Platform.choices}\
-                                                               Not processing request."}))
-            return
 
-        gamemetadata = GameMetaData.objects.filter(package_name=payload["package_name"]).first()
-        if not gamemetadata:
-            self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['package_name']}'.\
+        organization = Organization.objects.filter(organization_name=payload["organization_name"]).first()
+        if not organization:
+            self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['organization_name']}'.\
                                                                Not processing request."}))
             return
-        game = Game.objects.filter(gamemetadata=gamemetadata, version_number=payload["version_number"]).first()
+        game = Game.objects.filter(organization=organization, game_name=payload["game_name"], version_number=payload["version_number"]).first()
         if not game:
             self.send(text_data=json.dumps({"error": f"Game does not exist: '{payload['package_name']} version {payload['version_number']}'.\
                                                                Not processing request."}))

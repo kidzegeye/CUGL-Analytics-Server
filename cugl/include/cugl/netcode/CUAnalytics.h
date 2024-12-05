@@ -156,7 +156,7 @@ namespace cugl
 
             private:
                 void dispose();
-                bool init(const InetAddress &address, bool secure = false); // Make sure you init with our hardcoded path
+                bool init(const InetAddress &address, const std::string &organization_name, const std::string &game_name, const std::string &version_number, bool secure = false); // Make sure you init with our hardcoded path
 
 #pragma mark Communication
             public:
@@ -170,10 +170,10 @@ namespace cugl
 #pragma mark Static Allocators
 
             public:
-                static std::shared_ptr<AnalyticsConnection> alloc(const InetAddress &address)
+                static std::shared_ptr<AnalyticsConnection> alloc(const InetAddress &address, const std::string &organization_name, const std::string &game_name, const std::string &version_number, bool secure = false)
                 {
                     std::shared_ptr<AnalyticsConnection> result = std::make_shared<AnalyticsConnection>();
-                    return (result->init(address) ? result : nullptr);
+                    return (result->init(address, organization_name, game_name, version_number, secure) ? result : nullptr);
                 }
 
 #pragma mark Debugging
@@ -198,7 +198,6 @@ namespace cugl
                 void addTask(const std::shared_ptr<Task> &task);
                 void addTasks(const std::vector<std::shared_ptr<Task>> &tasks);
                 void addTaskAttempt(const std::shared_ptr<TaskAttempt> &TaskAttempt);
-                // void endTask(const std::shared_ptr<Task> &task);
                 void syncTaskAttempt(const std::shared_ptr<TaskAttempt> &TaskAttempt);
                 void recordAction(const std::shared_ptr<JsonValue> &actionBlob); // Add Action Data here
 

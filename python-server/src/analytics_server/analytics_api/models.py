@@ -3,27 +3,23 @@ from django.utils.timezone import now
 from django.db.models import Q
 
 
-class GameMetaData(models.Model):
-    package_name = models.TextField(unique=True)
-    game_name = models.TextField()
+class Organization(models.Model):
+    organization_name = models.TextField(unique=True)
 
 
 class Game(models.Model):
     class Meta:
         db_table = 'analytics_api_game'
         constraints = [
-            models.UniqueConstraint(fields=['gamemetadata', 'version_number'], name='unique version')
+            models.UniqueConstraint(fields=['organization', 'game_name', 'version_number'], name='unique game version per organization')
         ]
 
-    gamemetadata = models.ForeignKey(GameMetaData, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    game_name = models.TextField()
     version_number = models.TextField()
 
 
 class User(models.Model):
-    class Platform(models.TextChoices):
-        IOS = "ios"
-        ANDROID = "android"
-        OTHER = "other"
 
     class Meta:
         db_table = 'analytics_api_user'
@@ -33,7 +29,7 @@ class User(models.Model):
 
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     vendor_id = models.TextField()
-    platform = models.TextField(choices=Platform.choices)
+    platform = models.TextField()
 
 
 class Session(models.Model):

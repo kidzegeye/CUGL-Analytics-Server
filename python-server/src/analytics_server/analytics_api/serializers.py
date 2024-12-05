@@ -1,10 +1,10 @@
-from analytics_server.analytics_api.models import GameMetaData, Game, User, Session, Task, TaskAttempt, Action
+from analytics_server.analytics_api.models import Organization, Game, User, Session, Task, TaskAttempt, Action
 from rest_framework import serializers
 
 
-class GameMetaDataSerializer(serializers.ModelSerializer):
+class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GameMetaData
+        model = Organization
         fields = '__all__'
 
 

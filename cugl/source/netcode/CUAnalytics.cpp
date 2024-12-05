@@ -44,12 +44,10 @@
 #include <cugl/netcode/CUAnalytics.h>
 #include <cugl/netcode/CUNetcodeSerializer.h>
 #include <cugl/core/assets/CUJsonValue.h>
-
-using namespace cugl::netcode::analytics;
-using namespace std;
 #include <cugl/netcode/CUAnalytics.h>
 #include <cugl/netcode/CUWebSocket.h>
 #include <cugl/core/util/CUDebug.h>
+#include <SDL_app.h>
 
 using namespace cugl::netcode::analytics;
 using namespace std;
@@ -63,7 +61,7 @@ AnalyticsConnection::~AnalyticsConnection()
     dispose();
 }
 
-bool AnalyticsConnection::init(const InetAddress &address, bool secure)
+bool AnalyticsConnection::init(const InetAddress &address, const std::string &organization_name, const std::string &game_name, const std::string &version_number, bool secure)
 {
 
     // Get UUID from the hashtool functions system_uuid()
@@ -79,12 +77,21 @@ bool AnalyticsConnection::init(const InetAddress &address, bool secure)
         if (responseMessage->has("error"))
         {
             std::string errorMessage = responseMessage->get("error")->asString();
-            throw("Error message: %s", errorMessage);
+            throw("Error message: "+ errorMessage);
         }
     };
     _webSocket->open(secure);
-    std::shared_ptr<JsonValue> gameMetaData = JsonValue::allocWithJson("{\"key\":\"value\"}");
-    _serializer->writeJson(gameMetaData);
+    std::string initJSONString = 
+    "{\"message_type\": \"init\","
+    "\"message_payload\": {"
+    "\"organization_name\": \""+organization_name+"\","
+    "\"game_name\": \""+game_name+"\","
+    "\"version_number\": \""+version_number+"\","
+    "\"vendor_id\": \""+hashtool::system_uuid()+"\","
+    "\"platform\": \""+APP_GetDeviceModel()+"\"}}";
+
+    std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
+    _serializer->writeJson(initPayload);
     _webSocket->send(_serializer->serialize());
     _serializer->reset();
     try

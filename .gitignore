@@ -31,11 +31,15 @@
 *.out
 *.app
 
+# Caches
+*.pyc
+
 python-server/.envrc
 python-server/.env
 python-server/venv/
 python-server/dataset/
 
+cugl/external/
 .DS_Store
 /__pycache__/
 NetLab/build/

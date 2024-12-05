@@ -21,7 +21,7 @@ from analytics_server.analytics_api import views
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 router = routers.DefaultRouter()
-router.register(r'gamemetadata', views.GameMetaDataViewSet)
+router.register(r'organization', views.OrganizationViewSet)
 router.register(r'game', views.GameViewSet)
 router.register(r'user', views.UserViewSet)
 router.register(r'session', views.SessionViewSet)
