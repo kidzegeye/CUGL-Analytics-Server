@@ -43,6 +43,7 @@ namespace cugl
                 {
                     _name = name;
                     _uuid = hashtool::generate_uuid();
+                    return true;
                 };
             public:
                 static std::shared_ptr<Task> alloc(std::string name)
@@ -108,6 +109,7 @@ namespace cugl
                     _status = Status::NOT_STARTED;
                     _startTime = "";
                     _endTime = "";
+                    return true;
                 };
             public:
                 static std::shared_ptr<TaskAttempt> alloc(const std::shared_ptr<Task> task, std::shared_ptr<Statistics> taskStatistics)
