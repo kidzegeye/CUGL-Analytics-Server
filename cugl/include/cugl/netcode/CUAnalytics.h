@@ -28,15 +28,16 @@ namespace cugl
         {
             class Task
             {
-            private:
-                std::string _name;
-                std::string _uuid;
 
+            public:
                 Task() : _name(""), _uuid("") {}
 
                 ~Task() { dispose(); }
 
             private:
+                std::string _name;
+                std::string _uuid;
+
                 void dispose()
                 {
                     _name = "";
@@ -79,19 +80,19 @@ namespace cugl
                     std::unordered_map<std::string, bool> booleanStatistics;
                 };
 
-                TaskAttempt() : 
-                _task(nullptr),
-                _uuid(""),
-                _taskStatistics(nullptr),
-                _numFailures(0),
-                _status(Status::NOT_STARTED),
-                _startTime(""),
-                _endTime("") {}
+                TaskAttempt() : _task(nullptr),
+                                _uuid(""),
+                                _taskStatistics(nullptr),
+                                _numFailures(0),
+                                _status(Status::NOT_STARTED),
+                                _startTime(""),
+                                _endTime("") {}
 
                 ~TaskAttempt() { dispose(); }
-                
+
             private:
-                void dispose() {
+                void dispose()
+                {
                     _task = nullptr;
                     _uuid = "";
                     _taskStatistics = nullptr;
@@ -101,7 +102,8 @@ namespace cugl
                     _endTime = "";
                 };
 
-                bool init(const std::shared_ptr<Task> task, std::shared_ptr<Statistics> taskStatistics) {
+                bool init(const std::shared_ptr<Task> task, std::shared_ptr<Statistics> taskStatistics)
+                {
                     _task = task;
                     _uuid = hashtool::generate_uuid();
                     _taskStatistics = taskStatistics;
@@ -109,7 +111,6 @@ namespace cugl
                     _status = Status::NOT_STARTED;
                     _startTime = "";
                     _endTime = "";
-
                 };
 
             public:
