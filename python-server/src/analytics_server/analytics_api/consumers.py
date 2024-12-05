@@ -187,7 +187,7 @@ class MainConsumer(WebsocketConsumer):
                                                         task=task,
                                                         task_attempt_uuid=payload["task_attempt_uuid"],
                                                         session=session,
-                                                        status="notstarted",
+                                                        status="not_started",
                                                         statistics=payload["statistics"])
         serialized_task_attempt = dict(TaskAttemptSerializer(task_attempt).data)
         self.send(text_data=json.dumps({"message": "Task Attempt recorded",

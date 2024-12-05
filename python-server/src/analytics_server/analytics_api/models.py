@@ -68,7 +68,7 @@ class TaskAttempt(models.Model):
         SUCCEEDED = "succeeded"
         FAILED = "failed"
         PENDING = "pending"
-        NOTSTARTED = "notstarted"
+        NOT_STARTED = "not_started"
         PREEMPED = "preempted"
 
     task = models.ForeignKey(Task, on_delete=models.CASCADE)

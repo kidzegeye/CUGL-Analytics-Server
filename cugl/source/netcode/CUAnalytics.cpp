@@ -56,7 +56,7 @@ using namespace std;
 
 #pragma mark Constructors
 
-AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr), _serializer(nullptr), _dispatcher1(nullptr), _deserializer(nullptr) {}
+AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr), _serializer(nullptr), _dispatcher(nullptr), _deserializer(nullptr) {}
 
 AnalyticsConnection::~AnalyticsConnection()
 {
@@ -72,7 +72,7 @@ bool AnalyticsConnection::init(const InetAddress &address, bool secure)
     // bool _status = true;
     _serializer = NetcodeSerializer::alloc();
     _deserializer = NetcodeDeserializer::alloc();
-    _dispatcher1 = [this](const std::vector<std::byte> &message, Uint64 time)
+    _dispatcher = [this](const std::vector<std::byte> &message, Uint64 time)
     {
         _deserializer->receive(message);
         std::shared_ptr<JsonValue> responseMessage = _deserializer->readJson();
@@ -89,7 +89,7 @@ bool AnalyticsConnection::init(const InetAddress &address, bool secure)
     _serializer->reset();
     try
     {
-        _webSocket->onReceipt(_dispatcher1);
+        _webSocket->onReceipt(_dispatcher);
     }
     catch (const std::exception &ex)
     {
@@ -105,7 +105,7 @@ void AnalyticsConnection::dispose()
     _webSocket = nullptr;
     _serializer = nullptr;
     _deserializer = nullptr;
-    _dispatcher1 = nullptr;
+    _dispatcher = nullptr;
 }
 
 void AnalyticsConnection::open(bool secure)

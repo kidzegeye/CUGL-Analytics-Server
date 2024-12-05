@@ -63,13 +63,12 @@ namespace cugl
             class TaskAttempt
             {
             public:
-                // Keep a unique ID for the task attempt ID
                 enum class Status
                 {
-                    COMPLETED,
+                    SUCCEEDED,
                     FAILED,
                     PENDING,
-                    CANCELED,
+                    PREEMPTED,
                     NOT_STARTED
                 };
 
@@ -120,13 +119,22 @@ namespace cugl
                     return (result->init(task, taskStatistics) ? result : nullptr);
                 }
 
-                void setNumFailures(int num);
-                bool getIsActive() const;
-                std::string getStartTime() const;
-                std::string getEndTime() const;
-                void setTaskStatus(Status status);
-                Status getStatus() const;
-                void setStatistics() const;
+                std::string  getUUID() const { return _uuid; }
+
+                std::shared_ptr<Task> getTask() const { return _task; }
+
+                bool hasEnded() const { return _status == Status::SUCCEEDED ||
+                                               _status == Status::FAILED ||
+                                               _status == Status::PREEMPTED; }
+                
+                int  getNumFailures() const { return _numFailures; }
+                void setNumFailures(int numFailures) { _numFailures = numFailures; }
+
+                Status getStatus() const { return _status; }
+                void setStatus(Status status) { _status = status; }
+
+                std::shared_ptr<Statistics> getTaskStatistics() const { return _taskStatistics; }
+                void setTaskStatistics(std::shared_ptr<Statistics> taskStatistics) { _taskStatistics = taskStatistics; }
 
             private:
                 std::shared_ptr<Task> _task;
@@ -134,7 +142,6 @@ namespace cugl
                 std::shared_ptr<Statistics> _taskStatistics;
                 int _numFailures;
                 Status _status;
-                bool _isActive;
                 std::string _startTime;
                 std::string _endTime;
             };
@@ -199,7 +206,7 @@ namespace cugl
                 std::shared_ptr<WebSocket> _webSocket;
                 std::shared_ptr<NetcodeSerializer> _serializer;
                 std::shared_ptr<NetcodeDeserializer> _deserializer;
-                WebSocket::Dispatcher _dispatcher1;
+                WebSocket::Dispatcher _dispatcher;
             };
         }
     } // namespace netcode
