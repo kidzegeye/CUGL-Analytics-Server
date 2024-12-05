@@ -63,7 +63,7 @@ AnalyticsConnection::~AnalyticsConnection()
     dispose();
 }
 
-bool AnalyticsConnection::init(const InetAddress &address, bool secure = false)
+bool AnalyticsConnection::init(const InetAddress &address, bool secure)
 {
 
     // Get UUID from the hashtool functions system_uuid()
@@ -108,7 +108,7 @@ void AnalyticsConnection::dispose()
     _dispatcher1 = nullptr;
 }
 
-void AnalyticsConnection::open(bool secure = false)
+void AnalyticsConnection::open(bool secure)
 {
     _webSocket->open(secure);
 }
