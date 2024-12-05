@@ -40,7 +40,6 @@
 //
 //  Author:
 //  Version:
-//
 #include <cugl/netcode/CUNetworkLayer.h>
 #include <cugl/netcode/CUAnalytics.h>
 #include <cugl/netcode/CUNetcodeSerializer.h>
@@ -66,6 +65,9 @@ AnalyticsConnection::~AnalyticsConnection()
 
 bool AnalyticsConnection::init(const InetAddress &address, bool secure = false)
 {
+
+    // Get UUID from the hashtool functions system_uuid()
+    // System platform
     _webSocket = WebSocket::allocWithPath(address, "/ws/analytics/");
     // bool _status = true;
     _serializer = NetcodeSerializer::alloc();
@@ -91,7 +93,8 @@ bool AnalyticsConnection::init(const InetAddress &address, bool secure = false)
     }
     catch (const std::exception &ex)
     {
-        CULogError(ex.what());
+
+        CULogError("NETCODE ERROR: %s", ex.what());
         return false;
     }
     return true;
