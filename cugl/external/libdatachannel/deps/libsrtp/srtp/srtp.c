@@ -365,7 +365,7 @@ static srtp_err_status_t srtp_stream_alloc(srtp_stream_ctx_t **str_ptr,
     if (p->key != NULL) {
         str->num_master_keys = 1;
     } else {
-        str->num_master_keys = p->num_master_keys;
+        str->num_master_keys = (unsigned int)p->num_master_keys;
     }
 
     str->session_keys = (srtp_session_keys_t *)srtp_crypto_alloc(
@@ -1363,7 +1363,7 @@ static srtp_err_status_t srtp_stream_init(srtp_stream_ctx_t *srtp,
 
     /* initialize keys */
     err = srtp_stream_init_all_master_keys(srtp, p->key, p->keys,
-                                           p->num_master_keys);
+                                          (unsigned int) p->num_master_keys);
     if (err) {
         srtp_rdbx_dealloc(&srtp->rtp_rdbx);
         return err;
