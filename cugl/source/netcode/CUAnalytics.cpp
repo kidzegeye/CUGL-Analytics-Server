@@ -102,8 +102,10 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
     {
 
         CULogError("NETCODE ERROR: %s", ex.what());
+        _webSocket->close();
         return false;
     }
+    _webSocket->close();
     return true;
 }
 
