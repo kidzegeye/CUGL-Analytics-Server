@@ -121,3 +121,13 @@ void AnalyticsConnection::open(bool secure)
 {
     _webSocket->open(secure);
 }
+
+void AnalyticsConnection::setDebug(bool flag)
+{
+    _webSocket->setDebug(flag);
+}
+
+void AnalyticsConnection::getDebug()
+{
+    _webSocket->getDebug();
+}

@@ -81,7 +81,7 @@ void NetApp::onShutdown() {
     _gameplay.dispose();
     _hostgame.dispose();
     _joingame.dispose();
-    _analyticsConn.dispose();
+    _analyticsConn=nullptr;
     _assets = nullptr;
     _batch = nullptr;
 

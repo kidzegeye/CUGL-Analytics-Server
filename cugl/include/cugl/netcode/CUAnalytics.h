@@ -31,9 +31,9 @@ namespace cugl
 
             public:
                 Task() : _name(""), _uuid("") {}
-
+        
                 ~Task() { dispose(); }
-
+            private:
                 void dispose()
                 {
                     _name = "";
@@ -44,7 +44,7 @@ namespace cugl
                     _name = name;
                     _uuid = hashtool::generate_uuid();
                 };
-
+            public:
                 static std::shared_ptr<Task> alloc(std::string name)
                 {
                     std::shared_ptr<Task> result = std::make_shared<Task>();
@@ -87,7 +87,7 @@ namespace cugl
                                 _endTime("") {}
 
                 ~TaskAttempt() { dispose(); }
-
+            private:
                 void dispose()
                 {
                     _task = nullptr;
@@ -109,7 +109,7 @@ namespace cugl
                     _startTime = "";
                     _endTime = "";
                 };
-
+            public:
                 static std::shared_ptr<TaskAttempt> alloc(const std::shared_ptr<Task> task, std::shared_ptr<Statistics> taskStatistics)
                 {
                     std::shared_ptr<TaskAttempt> result = std::make_shared<TaskAttempt>();
@@ -150,11 +150,12 @@ namespace cugl
             public:
                 AnalyticsConnection();
                 ~AnalyticsConnection();
-
+            private:
                 void dispose();
                 bool init(const InetAddress &address, const std::string &organization_name, const std::string &game_name, const std::string &version_number, bool secure = false); // Make sure you init with our hardcoded path
 
 #pragma mark Communication
+            public:
                 void open(bool secure = false);
 
                 void close();
