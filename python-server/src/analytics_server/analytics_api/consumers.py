@@ -35,7 +35,7 @@ class MainConsumer(WebsocketConsumer):
         Receives a message on the websocket for recording an action
 
         Message format:
-        {   "message_type" : <game_meta_data|game|user|session|task|task_attempt|sync_task_attempt|action>
+        {   "message_type" : <init|session|task|task_attempt|sync_task_attempt|action>
             "message_payload": {
                 <message_type specific fields>
             }
@@ -50,12 +50,8 @@ class MainConsumer(WebsocketConsumer):
             return
 
         match payload["message_type"]:
-            case "game_meta_data":
-                self.handle_game_meta_data(payload["message_payload"])
-            case "game":
-                self.handle_game(payload["message_payload"])
-            case "user":
-                self.handle_user(payload["message_payload"])
+            case "init":
+                self.handle_init(payload["message_payload"])
             case "session":
                 self.handle_session(payload["message_payload"])
             case "task":
@@ -67,66 +63,41 @@ class MainConsumer(WebsocketConsumer):
             case "action":
                 self.handle_action(payload["message_payload"])
 
-    def handle_game_meta_data(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["package_name", "game_name"])
+    def handle_init(self, payload):
+        missing_fields, fields = self.check_fields(payload, ["package_name", "game_name", "version_number", "vendor_id", "platform"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        
-        game_meta_data, _ = GameMetaData.objects.get_or_create(package_name=payload["package_name"],
-                                                               game_name=payload["game_name"]
-                                                               )
-        serialized_game_meta_data = dict(GameMetaDataSerializer(game_meta_data).data)
-        self.send(text_data=json.dumps({"message": "Game Metadata recorded",
-                                        "data": serialized_game_meta_data}))
 
-    def handle_game(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["package_name", "version_number"])
-        if missing_fields:
-            self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
-                                                               Not processing request."}))
-            return
-        gamemetadata = GameMetaData.objects.filter(package_name=payload["package_name"]).first()
-        if not gamemetadata:
-            self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['package_name']}'.\
-                                                               Not processing request."}))
-            return
-        game, _ = Game.objects.get_or_create(gamemetadata=gamemetadata,
-                                             version_number=payload["version_number"]
-                                             )
-        serialized_game = dict(GameSerializer(game).data)
-        self.send(text_data=json.dumps({"message": "Game recorded",
-                                        "data": serialized_game}))
-
-    def handle_user(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["package_name", "version_number", "vendor_id", "platform"])
-        if missing_fields:
-            self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
-                                                               Not processing request."}))
-            return
         if not any(payload["platform"] in choice for choice in User.Platform.choices):
             self.send(text_data=json.dumps({"error": f"Invalid platform: '{payload['platform']}'.\
                                                        Must be one of {User.Platform.choices}\
                                                                Not processing request."}))
             return
-        gamemetadata = GameMetaData.objects.filter(package_name=payload["package_name"]).first()
-        if not gamemetadata:
-            self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['package_name']}'.\
-                                                               Not processing request."}))
-            return
-        game = Game.objects.filter(gamemetadata=gamemetadata, version_number=payload["version_number"]).first()
-        if not game:
-            self.send(text_data=json.dumps({"error": f"Game does not exist: '{payload['package_name']} version {payload['version_number']}'.\
-                                                               Not processing request."}))
-            return
+
+        gamemetadata, _ = GameMetaData.objects.get_or_create(package_name=payload["package_name"],
+                                                             game_name=payload["game_name"]
+                                                             )
+        serialized_gamemetadata = dict(GameMetaDataSerializer(gamemetadata).data)
+
+        game, _ = Game.objects.get_or_create(gamemetadata=gamemetadata,
+                                             version_number=payload["version_number"]
+                                             )
+        serialized_game = dict(GameSerializer(game).data)
+
         user, _ = User.objects.get_or_create(game=game,
                                              vendor_id=payload["vendor_id"],
                                              platform=payload["platform"]
                                              )
         serialized_user = dict(UserSerializer(user).data)
-        self.send(text_data=json.dumps({"message": "User recorded",
-                                        "data": serialized_user}))
+        self.send(text_data=json.dumps({"message": "Init recorded",
+                                        "data": {
+                                            "gamemetadata": serialized_gamemetadata,
+                                            "game": serialized_game,
+                                            "user": serialized_user
+                                            }
+                                        }))
 
     def handle_session(self, payload):
         missing_fields, fields = self.check_fields(payload, ["package_name", "version_number", "vendor_id", "platform"])
