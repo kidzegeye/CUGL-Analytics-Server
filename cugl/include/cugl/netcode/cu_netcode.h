@@ -2,7 +2,7 @@
 //  cu_netcode.h
 //  Cornell University Game Library (CUGL)
 //
-//  This header provides access to all of the publicly accessible elements of 
+//  This header provides access to all of the publicly accessible elements of
 //  this package.
 //
 //  CUGL MIT License:
@@ -30,6 +30,7 @@
 #ifndef __CU_NETCODE_PKG_H__
 #define __CU_NETCODE_PKG_H__
 
+#include "CUAnalytics.h"
 #include "CUInetAddress.h"
 #include "CUICEAddress.h"
 #include "CUNetworkLayer.h"
