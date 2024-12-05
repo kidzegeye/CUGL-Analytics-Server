@@ -30,6 +30,9 @@ class MainConsumer(WebsocketConsumer):
         self.close()
         return
 
+    def receive(self, bytes_data):
+        pass
+    
     def receive(self, text_data):
         """
         Receives a message on the websocket for recording an action

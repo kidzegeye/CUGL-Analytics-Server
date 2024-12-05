@@ -25,7 +25,8 @@ SECRET_KEY = os.getenv("DJANGO_SK")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+# Need to change this, but makes it so websockets require Origin headers (which doesn't seem to be supported in CUGL)
+ALLOWED_HOSTS = ['*'] 
 
 
 # Application definition

@@ -58,7 +58,7 @@ void NetApp::onStartup() {
     // Queue up the other assets
     _loading.start();
     netcode::NetworkLayer::start(netcode::NetworkLayer::Log::INFO);
-    cugl::netcode::InetAddress analyticsAddress = cugl::netcode::InetAddress();
+    cugl::netcode::InetAddress analyticsAddress = cugl::netcode::InetAddress(8000);
     _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(analyticsAddress, this->getOrganization(),  this->getName(), "1.0.0");
 
     Application::get()->setClearColor(Color4(192,192,192,255));

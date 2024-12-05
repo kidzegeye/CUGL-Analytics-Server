@@ -81,6 +81,9 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
         }
     };
     _webSocket->open(secure);
+    
+    while (!_webSocket->isOpen()){}
+
     std::string initJSONString = 
     "{\"message_type\": \"init\","
     "\"message_payload\": {"
@@ -89,7 +92,6 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
     "\"version_number\": \""+version_number+"\","
     "\"vendor_id\": \""+hashtool::system_uuid()+"\","
     "\"platform\": \""+APP_GetDeviceModel()+"\"}}";
-
     std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
     _serializer->writeJson(initPayload);
     _webSocket->send(_serializer->serialize());
