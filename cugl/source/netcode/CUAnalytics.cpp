@@ -127,7 +127,7 @@ void AnalyticsConnection::setDebug(bool flag)
     _webSocket->setDebug(flag);
 }
 
-void AnalyticsConnection::getDebug()
+bool AnalyticsConnection::getDebug()
 {
     _webSocket->getDebug();
 }
