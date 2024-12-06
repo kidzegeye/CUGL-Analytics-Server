@@ -72,13 +72,6 @@ namespace cugl
                     NOT_STARTED
                 };
 
-                struct Statistics
-                {
-                    std::unordered_map<std::string, int> intStatistics;
-                    std::unordered_map<std::string, float> floatStatistics;
-                    std::unordered_map<std::string, bool> booleanStatistics;
-                };
-
                 TaskAttempt() : _task(nullptr),
                                 _uuid(""),
                                 _taskStatistics(nullptr),
@@ -100,7 +93,7 @@ namespace cugl
                     _endTime = "";
                 };
 
-                bool init(const std::shared_ptr<Task> task, std::shared_ptr<Statistics> taskStatistics)
+                bool init(const std::shared_ptr<Task> task, std::shared_ptr<JsonValue> taskStatistics)
                 {
                     _task = task;
                     _uuid = hashtool::generate_uuid();
@@ -112,7 +105,7 @@ namespace cugl
                     return true;
                 };
             public:
-                static std::shared_ptr<TaskAttempt> alloc(const std::shared_ptr<Task> task, std::shared_ptr<Statistics> taskStatistics)
+                static std::shared_ptr<TaskAttempt> alloc(const std::shared_ptr<Task> task, std::shared_ptr<JsonValue> taskStatistics)
                 {
                     std::shared_ptr<TaskAttempt> result = std::make_shared<TaskAttempt>();
                     return (result->init(task, taskStatistics) ? result : nullptr);
@@ -130,15 +123,25 @@ namespace cugl
                 void setNumFailures(int numFailures) { _numFailures = numFailures; }
 
                 Status getStatus() const { return _status; }
+                std::string getStatusAsString() const {
+                    switch (_status)
+                    {
+                        case Status::SUCCEEDED:   return "succeeded";
+                        case Status::FAILED:   return "failed";
+                        case Status::PENDING: return "pending";
+                        case Status::PREEMPTED:   return "preempted";
+                        case Status::NOT_STARTED:   return "not_started";
+                        default:      return "unknown";
+                    }
+                }
                 void setStatus(Status status) { _status = status; }
-
-                std::shared_ptr<Statistics> getTaskStatistics() const { return _taskStatistics; }
-                void setTaskStatistics(std::shared_ptr<Statistics> taskStatistics) { _taskStatistics = taskStatistics; }
+                std::shared_ptr<JsonValue> getTaskStatistics() const { return _taskStatistics; }
+                void setTaskStatistics(std::shared_ptr<JsonValue> taskStatistics) { _taskStatistics = taskStatistics; }
 
             private:
                 std::shared_ptr<Task> _task;
                 std::string _uuid;
-                std::shared_ptr<Statistics> _taskStatistics;
+                std::shared_ptr<JsonValue> _taskStatistics;
                 int _numFailures;
                 Status _status;
                 std::string _startTime;
@@ -193,17 +196,23 @@ namespace cugl
                  */
                 bool getDebug();
 
-                void addTask(const std::shared_ptr<Task> &task);
-                void addTasks(const std::vector<std::shared_ptr<Task>> &tasks);
-                void addTaskAttempt(const std::shared_ptr<TaskAttempt> &TaskAttempt);
-                void syncTaskAttempt(const std::shared_ptr<TaskAttempt> &TaskAttempt);
-                void recordAction(const std::shared_ptr<JsonValue> &actionBlob); // Add Action Data here
-
-            private:
+#pragma mark AnalyticsData
+                bool addTask(const std::shared_ptr<Task> &task);
+                bool addTasks(const std::vector<std::shared_ptr<Task>> &tasks);
+                bool addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
+                bool syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
+                bool recordAction(const std::shared_ptr<JsonValue> &actionBlob); // Add Action Data here
+               
+private:
                 std::shared_ptr<WebSocket> _webSocket;
                 std::shared_ptr<NetcodeSerializer> _serializer;
                 std::shared_ptr<NetcodeDeserializer> _deserializer;
                 WebSocket::Dispatcher _dispatcher;
+                std::string _organization_name;
+                std::string _game_name;
+                std::string _version_number;
+                std::string _vendor_id;
+                std::string _platform;
             };
         }
     } // namespace netcode

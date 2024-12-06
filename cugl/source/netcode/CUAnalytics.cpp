@@ -54,7 +54,7 @@ using namespace std;
 
 #pragma mark Constructors
 
-AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr), _serializer(nullptr), _dispatcher(nullptr), _deserializer(nullptr) {}
+AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr), _serializer(nullptr), _dispatcher(nullptr), _deserializer(nullptr), _organization_name(""), _game_name(""), _version_number(""), _vendor_id(""), _platform("") {}
 
 AnalyticsConnection::~AnalyticsConnection()
 {
@@ -67,9 +67,13 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
     // Get UUID from the hashtool functions system_uuid()
     // System platform
     _webSocket = WebSocket::allocWithPath(address, "/ws/analytics/");
-    // bool _status = true;
     _serializer = NetcodeSerializer::alloc();
     _deserializer = NetcodeDeserializer::alloc();
+    _organization_name = organization_name;
+    _game_name = game_name;
+    _version_number = version_number;
+    _vendor_id = hashtool::system_uuid();
+    _platform = APP_GetDeviceModel();
     _dispatcher = [this](const std::vector<std::byte> &message, Uint64 time)
     {
         _deserializer->receive(message);
@@ -77,7 +81,7 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
         if (responseMessage->has("error"))
         {
             std::string errorMessage = responseMessage->get("error")->asString();
-            throw("Error message: "+ errorMessage);
+            throw(errorMessage);
         }
     };
     _webSocket->open(secure);
@@ -85,11 +89,12 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
     while (!_webSocket->isOpen()){}
     std::string initJSONString = "{\"message_type\": \"init\","
         "\"message_payload\": {"
-        "\"organization_name\": \"" + organization_name + "\","
-        "\"game_name\": \"" + game_name + "\","
-        "\"version_number\": \"" + version_number + "\","
-        "\"vendor_id\": \"" + hashtool::system_uuid() + "\","
-        "\"platform\": \"" + APP_GetDeviceModel() + "\"}}";
+        "\"organization_name\": \"" + _organization_name + "\","
+        "\"game_name\": \"" + _game_name + "\","
+        "\"version_number\": \"" + _version_number + "\","
+        "\"vendor_id\": \"" + _vendor_id + "\","
+        "\"platform\": \"" + _platform + "\""
+        "}}";
     std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
 
     send(initPayload);
@@ -102,6 +107,11 @@ void AnalyticsConnection::dispose()
     _serializer = nullptr;
     _deserializer = nullptr;
     _dispatcher = nullptr;
+    _organization_name = "";
+    _game_name = "";
+    _version_number = "";
+    _vendor_id = "";
+    _platform = "";
 }
 
 void AnalyticsConnection::open(bool secure)
@@ -151,3 +161,69 @@ bool AnalyticsConnection::getDebug()
 {
     return _webSocket->getDebug();
 }
+
+bool AnalyticsConnection::addTask(const std::shared_ptr<Task> &task){
+    std::string taskString = "{\"message_type\": \"task\","
+        "\"message_payload\": {"
+        "\"organization_name\": \"" + _organization_name + "\","
+        "\"game_name\": \"" + _game_name + "\","
+        "\"version_number\": \"" + _version_number + "\","
+        "\"vendor_id\": \"" + _vendor_id + "\","
+        "\"platform\": \"" + _platform + "\","
+        "\"vendor_id\": \"" + _vendor_id + "\","
+        "\"task_uuid\": \"" + task->getUUID() + "\","
+        "\"task_name\": \"" + task->getName() + "\""
+        "}}";
+
+    std::shared_ptr<JsonValue> taskPayload = JsonValue::allocWithJson(taskString);
+
+    send(taskPayload);
+    return true;
+}
+bool AnalyticsConnection::addTasks(const std::vector<std::shared_ptr<Task>> &tasks){
+    bool success = true;
+    for(const std::shared_ptr<Task>& task : tasks){
+        success = success && addTask(task);
+    }
+    return success;
+};
+
+bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt){
+    std::string taskAttemptString = "{\"message_type\": \"task_attempt\","
+        "\"message_payload\": {"
+        "\"task_uuid\": \"" + taskAttempt->getTask()->getUUID() + "\","
+        "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\","
+        "\"statistics\": \"" + taskAttempt->getTaskStatistics()->toString() + "\""
+        "}}";
+
+    std::shared_ptr<JsonValue> taskAttemptPayload = JsonValue::allocWithJson(taskAttemptString);
+
+    send(taskAttemptPayload);
+    return true;
+}
+bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt){
+    std::string syncTaskAttemptString = "{\"message_type\": \"sync_task_attempt\","
+        "\"message_payload\": {"
+        "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\","
+        "\"status\": \"" + taskAttempt->getStatusAsString() + "\","
+        "\"num_failures\": \"" + std::to_string(taskAttempt->getNumFailures()) + "\","
+        "\"statistics\": \"" + taskAttempt->getTaskStatistics()->toString() + "\""
+        "}}";
+
+    std::shared_ptr<JsonValue> syncTaskAttemptPayload = JsonValue::allocWithJson(syncTaskAttemptString);
+
+    send(syncTaskAttemptPayload);
+    return true;
+}
+bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob){
+    std::string actionString = "{\"message_type\": \"action\","
+        "\"message_payload\": {"
+        "\"data\": \"" + actionBlob->toString() + "\""
+        "}}";
+
+    std::shared_ptr<JsonValue> actionPayload = JsonValue::allocWithJson(actionString);
+
+    send(actionPayload);
+    return true;
+}
+
