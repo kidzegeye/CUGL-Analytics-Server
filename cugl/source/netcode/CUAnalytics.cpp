@@ -83,33 +83,16 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
     _webSocket->open(secure);
     
     while (!_webSocket->isOpen()){}
-
-    std::ostringstream oss;
-    oss << "{\"message_type\": \"init\","
+    std::string initJSONString = "{\"message_type\": \"init\","
         "\"message_payload\": {"
-        "\"organization_name\": \"" << organization_name << "\","
-        "\"game_name\": \"" << game_name << "\","
-        "\"version_number\": \"" << version_number << "\","
-        "\"vendor_id\": \"" << hashtool::system_uuid() << "\","
-        "\"platform\": \"" << APP_GetDeviceModel() << "\"}}";
-    std::string initJSONString = oss.str();
+        "\"organization_name\": \"" + organization_name + "\","
+        "\"game_name\": \"" + game_name + "\","
+        "\"version_number\": \"" + version_number + "\","
+        "\"vendor_id\": \"" + hashtool::system_uuid() + "\","
+        "\"platform\": \"" + APP_GetDeviceModel() + "\"}}";
     std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
 
-    _serializer->writeJson(initPayload);
-    _webSocket->send(_serializer->serialize());
-    _serializer->reset();
-    try
-    {
-        _webSocket->onReceipt(_dispatcher);
-    }
-    catch (const std::exception &ex)
-    {
-
-        CULogError("NETCODE ERROR: %s", ex.what());
-        _webSocket->close();
-        return false;
-    }
-    _webSocket->close();
+    send(initPayload);
     return true;
 }
 
@@ -124,6 +107,39 @@ void AnalyticsConnection::dispose()
 void AnalyticsConnection::open(bool secure)
 {
     _webSocket->open(secure);
+}
+
+bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
+{
+    if (!_webSocket->isOpen()){
+        CULogError("ANALYTICS ERROR: Websocket was not opened before sending");
+        return false;
+    }
+    // Need to encode bytes without metadata from NetcodeSerializer
+    std::vector<std::byte> bytes;
+    try
+    {
+        for (char& c : data->toString()) {
+            bytes.push_back(static_cast<std::byte>(c));
+        }
+        _webSocket->send(bytes);
+        _webSocket->onReceipt(_dispatcher);
+    }
+    catch (const std::exception &ex)
+    {
+        CULogError("ANALYTICS ERROR: %s", ex.what());
+        _webSocket->close();
+        return false;
+    }
+    if (getDebug()){
+        CULog("ANALYTICS SENT: %s", data->toString().c_str());
+    }
+    return true;
+}
+
+void AnalyticsConnection::close()
+{
+    _webSocket->close();
 }
 
 void AnalyticsConnection::setDebug(bool flag)

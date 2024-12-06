@@ -163,8 +163,8 @@ namespace cugl
                 void close();
 
             private:
-                void send(std::shared_ptr<JsonValue> &data); // This is the helper function to send data
-
+                bool send(std::shared_ptr<JsonValue> &data); // This is the helper function to send data
+                
 #pragma mark Static Allocators
 
             public:
