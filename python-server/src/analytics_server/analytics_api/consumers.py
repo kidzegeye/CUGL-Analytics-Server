@@ -3,6 +3,12 @@ from analytics_server.analytics_api.models import Organization, Game, User, Sess
 from analytics_server.analytics_api.serializers import OrganizationSerializer, GameSerializer, UserSerializer, SessionSerializer, TaskSerializer, TaskAttemptSerializer, ActionSerializer
 from channels.generic.websocket import WebsocketConsumer
 from django.utils.timezone import now
+import codecs
+import logging
+import sys
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+logger = logging.getLogger(__name__)
 
 
 class MainConsumer(WebsocketConsumer):
@@ -30,10 +36,7 @@ class MainConsumer(WebsocketConsumer):
         self.close()
         return
 
-    def receive(self, bytes_data):
-        pass
-    
-    def receive(self, text_data):
+    def receive(self, text_data=None, bytes_data=None):
         """
         Receives a message on the websocket for recording an action
 
@@ -45,7 +48,10 @@ class MainConsumer(WebsocketConsumer):
             
         }
         """
-        payload = json.loads(text_data)
+        if text_data:
+            payload = json.loads(text_data)
+        else:
+            payload = self.parse_bytes(bytes_data)
         missing_fields, fields = self.check_fields(payload, ["message_type", "message_payload"])
         if missing_fields:
             self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
@@ -256,3 +262,12 @@ class MainConsumer(WebsocketConsumer):
         if missing_fields:
             output = ", ".join(fields_missing)
         return missing_fields, output
+
+    def parse_bytes(self, bytes_str):
+        for b in bytes_str:
+            print(chr(b))
+        out = str(codecs.decode(bytes_str, "ascii"))
+        print(out)
+        out = out.strip().split("\t")
+        print(out)
+        raise Exception(out)

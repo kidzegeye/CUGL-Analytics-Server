@@ -84,15 +84,17 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
     
     while (!_webSocket->isOpen()){}
 
-    std::string initJSONString = 
-    "{\"message_type\": \"init\","
-    "\"message_payload\": {"
-    "\"organization_name\": \""+organization_name+"\","
-    "\"game_name\": \""+game_name+"\","
-    "\"version_number\": \""+version_number+"\","
-    "\"vendor_id\": \""+hashtool::system_uuid()+"\","
-    "\"platform\": \""+APP_GetDeviceModel()+"\"}}";
+    std::ostringstream oss;
+    oss << "{\"message_type\": \"init\","
+        "\"message_payload\": {"
+        "\"organization_name\": \"" << organization_name << "\","
+        "\"game_name\": \"" << game_name << "\","
+        "\"version_number\": \"" << version_number << "\","
+        "\"vendor_id\": \"" << hashtool::system_uuid() << "\","
+        "\"platform\": \"" << APP_GetDeviceModel() << "\"}}";
+    std::string initJSONString = oss.str();
     std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
+
     _serializer->writeJson(initPayload);
     _webSocket->send(_serializer->serialize());
     _serializer->reset();
