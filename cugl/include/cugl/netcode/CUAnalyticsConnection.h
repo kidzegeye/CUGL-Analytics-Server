@@ -1,5 +1,5 @@
-#ifndef __CU_ANALYTICS_H__
-#define __CU_ANALYTICS_H__
+#ifndef __CU_ANALYTICS_CONNECTION_H__
+#define __CU_ANALYTICS_CONNECTION_H__
 
 #include <string>
 #include <memory>
@@ -8,6 +8,8 @@
 #include <cugl/netcode/CUWebSocket.h>
 #include <cugl/core/util/CUHashtools.h>
 #include <cugl/netcode/CUNetcodeSerializer.h>
+#include <cugl/netcode/CUWebSocketConfig.h>
+
 namespace cugl
 {
     /**
@@ -157,13 +159,13 @@ namespace cugl
                 ~AnalyticsConnection();
             private:
                 void dispose();
-                bool init(const InetAddress &address, const std::string &organization_name, const std::string &game_name, const std::string &version_number, bool secure = false); // Make sure you init with our hardcoded path
+                bool init(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number);
 
 #pragma mark Communication
             public:
-                void open(bool secure = false);
+                bool open();
 
-                void close();
+                bool close();
 
             private:
                 bool send(std::shared_ptr<JsonValue> &data); // This is the helper function to send data
@@ -171,10 +173,10 @@ namespace cugl
 #pragma mark Static Allocators
 
             public:
-                static std::shared_ptr<AnalyticsConnection> alloc(const InetAddress &address, const std::string &organization_name, const std::string &game_name, const std::string &version_number, bool secure = false)
+                static std::shared_ptr<AnalyticsConnection> alloc(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number)
                 {
                     std::shared_ptr<AnalyticsConnection> result = std::make_shared<AnalyticsConnection>();
-                    return (result->init(address, organization_name, game_name, version_number, secure) ? result : nullptr);
+                    return (result->init(config, organization_name, game_name, version_number) ? result : nullptr);
                 }
 
 #pragma mark Debugging
@@ -207,15 +209,17 @@ private:
                 std::shared_ptr<WebSocket> _webSocket;
                 std::shared_ptr<NetcodeSerializer> _serializer;
                 std::shared_ptr<NetcodeDeserializer> _deserializer;
+                std::shared_ptr<WebSocketConfig> _config;
                 WebSocket::Dispatcher _dispatcher;
                 std::string _organization_name;
                 std::string _game_name;
                 std::string _version_number;
                 std::string _vendor_id;
                 std::string _platform;
+                
             };
         }
     } // namespace netcode
 } // namespace cugl
 
-#endif // __CU_ANALYTICS_H__
+#endif // __CU_ANALYTICS_CONNECTION_H__

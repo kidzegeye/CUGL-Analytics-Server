@@ -32,7 +32,8 @@ void NetApp::onStartup() {
     _assets = AssetManager::alloc();
     _batch  = SpriteBatch::alloc();
     auto cam = OrthographicCamera::alloc(getDisplaySize());
-    
+        CULog("Startup");
+
     // Start-up basic input
 #ifdef CU_MOBILE
     Input::activate<Touchscreen>();
@@ -57,10 +58,6 @@ void NetApp::onStartup() {
     
     // Queue up the other assets
     _loading.start();
-    netcode::NetworkLayer::start(netcode::NetworkLayer::Log::INFO);
-    cugl::netcode::InetAddress analyticsAddress = cugl::netcode::InetAddress(8000);
-    _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(analyticsAddress, this->getOrganization(),  this->getName(), "1.0.0");
-
     Application::get()->setClearColor(Color4(192,192,192,255));
     Application::onStartup(); // YOU MUST END with call to parent
 }
@@ -181,6 +178,12 @@ void NetApp::updateLoadingScene(float timestep) {
         _gameplay.init(_assets);
         _gameplay.setSpriteBatch(_batch);
         _mainmenu.setActive(true);
+        netcode::NetworkLayer::start(netcode::NetworkLayer::Log::INFO);
+        // Create the analytics server configuration
+        auto json = _assets->get<JsonValue>("server");
+        _config.set(json->get("analytics server"));
+        _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(_config, this->getOrganization(),  this->getName(), "1.0.0");
+        
         _scene = State::MENU;
     }
 }

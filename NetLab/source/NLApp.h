@@ -62,7 +62,10 @@ protected:
 
     /** The current active scene */
     State _scene;
-    
+
+    /** The analytics websocket configuration */
+    cugl::netcode::WebSocketConfig _config;
+
 public:
     /**
      * Creates, but does not initialized a new application.

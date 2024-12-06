@@ -1,5 +1,5 @@
 //
-//  CUAnalytics.h
+//  CUAnalyticsConnection.h
 //  Cornell University Game Library (CUGL)
 //
 //  [ desc ]
@@ -41,10 +41,9 @@
 //  Author:
 //  Version:
 #include <cugl/netcode/CUNetworkLayer.h>
-#include <cugl/netcode/CUAnalytics.h>
 #include <cugl/netcode/CUNetcodeSerializer.h>
 #include <cugl/core/assets/CUJsonValue.h>
-#include <cugl/netcode/CUAnalytics.h>
+#include <cugl/netcode/CUAnalyticsConnection.h>
 #include <cugl/netcode/CUWebSocket.h>
 #include <cugl/core/util/CUDebug.h>
 #include <SDL_app.h>
@@ -54,18 +53,28 @@ using namespace std;
 
 #pragma mark Constructors
 
-AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr), _serializer(nullptr), _dispatcher(nullptr), _deserializer(nullptr), _organization_name(""), _game_name(""), _version_number(""), _vendor_id(""), _platform("") {}
+AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr),
+                                             _serializer(nullptr),
+                                             _dispatcher(nullptr),
+                                             _deserializer(nullptr),
+                                             _config(nullptr),
+                                             _organization_name(""),
+                                             _game_name(""),
+                                             _version_number(""), 
+                                             _vendor_id(""),
+                                             _platform("") {}
 
 AnalyticsConnection::~AnalyticsConnection()
 {
     dispose();
 }
 
-bool AnalyticsConnection::init(const InetAddress &address, const std::string &organization_name, const std::string &game_name, const std::string &version_number, bool secure)
+bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number)
 {
 
     // Get UUID from the hashtool functions system_uuid()
     // System platform
+    InetAddress address = InetAddress(config.bindaddr,config.port);
     _webSocket = WebSocket::allocWithPath(address, "/ws/analytics/");
     _serializer = NetcodeSerializer::alloc();
     _deserializer = NetcodeDeserializer::alloc();
@@ -74,6 +83,8 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
     _version_number = version_number;
     _vendor_id = hashtool::system_uuid();
     _platform = APP_GetDeviceModel();
+    _config = std::make_shared<WebSocketConfig>(config);
+
     _dispatcher = [this](const std::vector<std::byte> &message, Uint64 time)
     {
         _deserializer->receive(message);
@@ -84,9 +95,8 @@ bool AnalyticsConnection::init(const InetAddress &address, const std::string &or
             throw(errorMessage);
         }
     };
-    _webSocket->open(secure);
+    open();
     
-    while (!_webSocket->isOpen()){}
     std::string initJSONString = "{\"message_type\": \"init\","
         "\"message_payload\": {"
         "\"organization_name\": \"" + _organization_name + "\","
@@ -112,11 +122,22 @@ void AnalyticsConnection::dispose()
     _version_number = "";
     _vendor_id = "";
     _platform = "";
+    _config = nullptr;
 }
 
-void AnalyticsConnection::open(bool secure)
+bool AnalyticsConnection::open()
 {
-    _webSocket->open(secure);
+    _webSocket->open(_config->secure);
+    while (!_webSocket->isOpen()){}
+    return true;
+
+}
+
+bool AnalyticsConnection::close()
+{
+    _webSocket->close();
+    while (_webSocket->isOpen()){}
+    return true;
 }
 
 bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
@@ -145,11 +166,6 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
         CULog("ANALYTICS SENT: %s", data->toString().c_str());
     }
     return true;
-}
-
-void AnalyticsConnection::close()
-{
-    _webSocket->close();
 }
 
 void AnalyticsConnection::setDebug(bool flag)

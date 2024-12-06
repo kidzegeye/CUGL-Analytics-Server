@@ -30,7 +30,7 @@
 #ifndef __CU_NETCODE_PKG_H__
 #define __CU_NETCODE_PKG_H__
 
-#include "CUAnalytics.h"
+#include "CUAnalyticsConnection.h"
 #include "CUInetAddress.h"
 #include "CUICEAddress.h"
 #include "CUNetworkLayer.h"
