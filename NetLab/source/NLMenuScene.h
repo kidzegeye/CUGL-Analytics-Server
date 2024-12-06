@@ -47,6 +47,9 @@ protected:
     std::shared_ptr<cugl::scene2::Button> _joinbutton;
     /** The player menu choice */
     Choice _choice;
+
+    /** The connection to the analytics server */
+    std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection> _analyticsConn;
     
 public:
 #pragma mark -
@@ -86,7 +89,7 @@ public:
      *
      * @return true if the controller is initialized properly, false otherwise.
      */
-    bool init(const std::shared_ptr<cugl::AssetManager>& assets);
+    bool init(const std::shared_ptr<cugl::AssetManager>& assets, const std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection>& analyticsConn);
 
     /**
      * Sets whether the scene is currently active

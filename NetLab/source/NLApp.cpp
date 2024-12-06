@@ -169,21 +169,21 @@ void NetApp::updateLoadingScene(float timestep) {
         _loading.update(timestep);
     } else {
         _loading.dispose(); // Permanently disables the input listeners in this mode
-        _mainmenu.init(_assets);
-        _mainmenu.setSpriteBatch(_batch);
-        _hostgame.init(_assets);
-        _hostgame.setSpriteBatch(_batch);
-        _joingame.init(_assets);
-        _joingame.setSpriteBatch(_batch);
-        _gameplay.init(_assets);
-        _gameplay.setSpriteBatch(_batch);
-        _mainmenu.setActive(true);
         netcode::NetworkLayer::start(netcode::NetworkLayer::Log::INFO);
         // Create the analytics server configuration
         auto json = _assets->get<JsonValue>("server");
         _config.set(json->get("analytics server"));
         _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(_config, this->getOrganization(),  this->getName(), "1.0.0");
         
+        _mainmenu.init(_assets, _analyticsConn);
+        _mainmenu.setSpriteBatch(_batch);
+        _hostgame.init(_assets, _analyticsConn);
+        _hostgame.setSpriteBatch(_batch);
+        _joingame.init(_assets, _analyticsConn);
+        _joingame.setSpriteBatch(_batch);
+        _gameplay.init(_assets, _analyticsConn);
+        _gameplay.setSpriteBatch(_batch);
+        _mainmenu.setActive(true);
         _scene = State::MENU;
     }
 }

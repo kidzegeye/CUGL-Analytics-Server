@@ -47,6 +47,9 @@ protected:
     /** The network connection (as made by this scene) */
     std::shared_ptr<cugl::netcode::NetcodeConnection> _network;
 
+    /** The connection to the analytics server */
+    std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection> _analyticsConn;
+
     /** The menu button for starting a game */
     std::shared_ptr<cugl::scene2::Button> _startgame;
     /** The back button for the menu scene */
@@ -100,7 +103,7 @@ public:
      *
      * @return true if the controller is initialized properly, false otherwise.
      */
-    bool init(const std::shared_ptr<cugl::AssetManager>& assets);
+    bool init(const std::shared_ptr<cugl::AssetManager>& assets, const std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection>& analyticsConn);
     
     /**
      * Sets whether the scene is currently active

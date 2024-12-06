@@ -59,6 +59,9 @@ protected:
     
     /** The network configuration */
     cugl::netcode::NetcodeConfig _config;
+
+    /** The connection to the analytics server */
+    std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection> _analyticsConn;
     
     /** The current status */
     Status _status;
@@ -101,7 +104,7 @@ public:
      *
      * @return true if the controller is initialized properly, false otherwise.
      */
-    bool init(const std::shared_ptr<cugl::AssetManager>& assets);
+    bool init(const std::shared_ptr<cugl::AssetManager>& assets, const std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection>& analyticsConn);
 
     /**
      * Sets whether the scene is currently active

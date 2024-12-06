@@ -40,7 +40,7 @@ using namespace std;
  *
  * @return true if the controller is initialized properly, false otherwise.
  */
-bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
+bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection>& analyticsConn) {
     // Initialize the scene to a locked height
     if (assets == nullptr) {
         return false;
@@ -51,6 +51,9 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
     // Start up the input handler
     _assets = assets;
     
+    // Store the analytics server pointer
+    _analyticsConn = analyticsConn;
+
     // Acquire the scene built by the asset loader and resize it the scene
     std::shared_ptr<scene2::SceneNode> scene = _assets->get<scene2::SceneNode>("game");
     scene->setContentSize(_size);
