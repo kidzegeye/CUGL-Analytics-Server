@@ -51,7 +51,7 @@ class Task(models.Model):
     class Meta:
         db_table = 'analytics_api_task'
         constraints = [
-            models.UniqueConstraint(fields=['user', 'task_name'], name='unique task')
+            models.UniqueConstraint(fields=['user', 'task_uuid', 'task_name'], name='unique task')
         ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -60,6 +60,9 @@ protected:
     /** Whether we quit the game */
     bool _quit;
     
+    /** Analytics action indiciation that a button was pressed */
+    std::shared_ptr<cugl::JsonValue> _clickAction;
+    
     
 public:
 #pragma mark -

@@ -168,7 +168,10 @@ namespace cugl
                 bool close();
 
             private:
+            
                 bool send(std::shared_ptr<JsonValue> &data); // This is the helper function to send data
+
+
                 
 #pragma mark Static Allocators
 
@@ -179,7 +182,11 @@ namespace cugl
                     return (result->init(config, organization_name, game_name, version_number) ? result : nullptr);
                 }
 
-#pragma mark Debugging
+#pragma mark Accessors
+
+                std::shared_ptr<WebSocket> getWebsocketConnection(){
+                    return _webSocket;
+                }
                 /**
                  * Toggles the debugging status of this connection.
                  *
@@ -215,8 +222,7 @@ private:
                 std::string _game_name;
                 std::string _version_number;
                 std::string _vendor_id;
-                std::string _platform;
-                
+                std::string _platform;                
             };
         }
     } // namespace netcode

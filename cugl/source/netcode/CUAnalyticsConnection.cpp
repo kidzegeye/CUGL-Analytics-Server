@@ -75,7 +75,7 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     // Get UUID from the hashtool functions system_uuid()
     // System platform
     InetAddress address = InetAddress(config.bindaddr,config.port);
-    _webSocket = WebSocket::allocWithPath(address, "/ws/analytics/");
+    _webSocket = WebSocket::alloc(address);
     _serializer = NetcodeSerializer::alloc();
     _deserializer = NetcodeDeserializer::alloc();
     _organization_name = organization_name;
@@ -89,6 +89,7 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     {
         _deserializer->receive(message);
         std::shared_ptr<JsonValue> responseMessage = _deserializer->readJson();
+        CULog("Dispatch response: %s", responseMessage->toString().c_str());
         if (responseMessage->has("error"))
         {
             std::string errorMessage = responseMessage->get("error")->asString();
@@ -108,6 +109,8 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
 
     send(initPayload);
+    // close();
+
     return true;
 }
 
@@ -130,18 +133,17 @@ bool AnalyticsConnection::open()
     _webSocket->open(_config->secure);
     while (!_webSocket->isOpen()){}
     return true;
-
 }
 
 bool AnalyticsConnection::close()
 {
+    CULog("CLOOOOOOSE");
     _webSocket->close();
-    while (_webSocket->isOpen()){}
+    while (!(_webSocket->getState() == WebSocket::State::CLOSED)) {}
     return true;
 }
 
-bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
-{
+bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data){
     if (!_webSocket->isOpen()){
         CULogError("ANALYTICS ERROR: Websocket was not opened before sending");
         return false;
@@ -154,11 +156,12 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
             bytes.push_back(static_cast<std::byte>(c));
         }
         _webSocket->send(bytes);
-        _webSocket->onReceipt(_dispatcher);
+      //  _webSocket->onReceipt(_dispatcher);
     }
     catch (const std::exception &ex)
     {
         CULogError("ANALYTICS ERROR: %s", ex.what());
+        CULog("CLOSEEEEEE");
         _webSocket->close();
         return false;
     }
@@ -193,8 +196,7 @@ bool AnalyticsConnection::addTask(const std::shared_ptr<Task> &task){
 
     std::shared_ptr<JsonValue> taskPayload = JsonValue::allocWithJson(taskString);
 
-    send(taskPayload);
-    return true;
+    return send(taskPayload);
 }
 bool AnalyticsConnection::addTasks(const std::vector<std::shared_ptr<Task>> &tasks){
     bool success = true;
@@ -214,8 +216,7 @@ bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &tas
 
     std::shared_ptr<JsonValue> taskAttemptPayload = JsonValue::allocWithJson(taskAttemptString);
 
-    send(taskAttemptPayload);
-    return true;
+    return send(taskAttemptPayload);
 }
 bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt){
     std::string syncTaskAttemptString = "{\"message_type\": \"sync_task_attempt\","
@@ -228,18 +229,14 @@ bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &ta
 
     std::shared_ptr<JsonValue> syncTaskAttemptPayload = JsonValue::allocWithJson(syncTaskAttemptString);
 
-    send(syncTaskAttemptPayload);
-    return true;
+    return send(syncTaskAttemptPayload);
 }
 bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob){
     std::string actionString = "{\"message_type\": \"action\","
         "\"message_payload\": {"
-        "\"data\": \"" + actionBlob->toString() + "\""
-        "}}";
-
+        "\"data\": " + actionBlob->toString()+"}}";
     std::shared_ptr<JsonValue> actionPayload = JsonValue::allocWithJson(actionString);
 
-    send(actionPayload);
-    return true;
+    return send(actionPayload);
 }
 

@@ -52,7 +52,10 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
     _assets = assets;
     
     // Store the analytics server pointer
+
     _analyticsConn = analyticsConn;
+    // CULog("OPENING");
+    // _analyticsConn->open();
 
     // Acquire the scene built by the asset loader and resize it the scene
     std::shared_ptr<scene2::SceneNode> scene = _assets->get<scene2::SceneNode>("game");
@@ -72,10 +75,15 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
     _grey = std::dynamic_pointer_cast<scene2::Button>(_assets->get<scene2::SceneNode>("game.buttons.grey"));
     _quit = false;
     
+    _clickAction = JsonValue::allocObject();
+    _clickAction->appendChild("button_pressed", JsonValue::allocNull());
+
     _backout->addListener([=](const std::string& name, bool down) {
         if (down) {
             _quit = true;
             Application::get()->setClearColor(Color4("#c0c0c0"));
+            _clickAction->get("button_pressed")->set((std::string)"quit");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
 
@@ -85,54 +93,72 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
             // Ideally we would get the button color, but down buttons are DARKENED
             // This lab was finished too last minute to fix this
             transmitColor(Color4::WHITE);
+            _clickAction->get("button_pressed")->set((std::string)"white");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
 
     _red->addListener([this](const std::string& name, bool down) {
         if (down) {
             transmitColor(Color4::RED);
+            _clickAction->get("button_pressed")->set((std::string)"red");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
 
     _green->addListener([this](const std::string& name, bool down) {
         if (down) {
             transmitColor(Color4::GREEN);
+            _clickAction->get("button_pressed")->set((std::string)"green");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
     
     _blue->addListener([this](const std::string& name, bool down) {
         if (down) {
             transmitColor(Color4::BLUE);
+            _clickAction->get("button_pressed")->set((std::string)"blue");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
 
     _yellow->addListener([this](const std::string& name, bool down) {
         if (down) {
             transmitColor(Color4::YELLOW);
+            _clickAction->get("button_pressed")->set((std::string)"yellow");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
 
     _cyan->addListener([this](const std::string& name, bool down) {
         if (down) {
             transmitColor(Color4::CYAN);
+            _clickAction->get("button_pressed")->set((std::string)"cyan");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
 
     _magenta->addListener([this](const std::string& name, bool down) {
         if (down) {
             transmitColor(Color4::MAGENTA);
+            _clickAction->get("button_pressed")->set((std::string)"magenta");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
 
     _black->addListener([this](const std::string& name, bool down) {
         if (down) {
             transmitColor(Color4::BLACK);
+            _clickAction->get("button_pressed")->set((std::string)"black");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
 
     _grey->addListener([this](const std::string& name, bool down) {
         if (down) {
             transmitColor(Color4("#888888"));
+            _clickAction->get("button_pressed")->set((std::string)"grey");
+            _analyticsConn->recordAction(_clickAction);
         }
     });
 
@@ -160,6 +186,7 @@ void GameScene::dispose() {
         _black = nullptr;
         _grey = nullptr;
         _active = false;
+        _clickAction = nullptr;
     }
 }
 
