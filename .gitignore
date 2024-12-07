@@ -44,3 +44,7 @@ cugl/external/
 /__pycache__/
 NetLab/build/
 gen/
+
+compile_commands.json
+.cache/
+.vscode/

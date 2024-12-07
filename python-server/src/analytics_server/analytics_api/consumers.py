@@ -38,7 +38,7 @@ class MainConsumer(WebsocketConsumer):
         Receives a message on the websocket for recording an action
 
         Message format:
-        {   "message_type" : <init|session|task|task_attempt|sync_task_attempt|action>
+        {   "message_type" : <init|task|task_attempt|sync_task_attempt|action>
             "message_payload": {
                 <message_type specific fields>
             }
@@ -58,8 +58,6 @@ class MainConsumer(WebsocketConsumer):
         match payload["message_type"]:
             case "init":
                 self.handle_init(payload["message_payload"])
-            case "session":
-                self.handle_session(payload["message_payload"])
             case "task":
                 self.handle_task(payload["message_payload"])
             case "task_attempt":
@@ -91,44 +89,22 @@ class MainConsumer(WebsocketConsumer):
                                              platform=payload["platform"]
                                              )
         serialized_user = dict(UserSerializer(user).data)
-        self.send(text_data=json.dumps({"message": "Init recorded",
-                                        "data": {
-                                            "organization": serialized_organization,
-                                            "game": serialized_game,
-                                            "user": serialized_user
-                                            }
-                                        }))
 
-    def handle_session(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform"])
-        if missing_fields:
-            self.send(text_data=json.dumps({"error": f"Missing fields: {fields}.\
-                                                               Not processing request."}))
-            return
-        
-        organization = Organization.objects.filter(organization_name=payload["organization_name"]).first()
-        if not organization:
-            self.send(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['package_name']}'.\
-                                                               Not processing request."}))
-            return
-        game = Game.objects.filter(organization=organization, game_name=payload["game_name"], version_number=payload["version_number"]).first()
-        if not game:
-            self.send(text_data=json.dumps({"error": f"Game does not exist: '{payload['package_name']} version {payload['version_number']}'.\
-                                                               Not processing request."}))
-            return
-        user = User.objects.filter(game=game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
-        if not user:
-            self.send(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['package_name']} version {payload['version_number']}'.\
-                                                               Not processing request."}))
-            return
         temp_session = Session.objects.filter(user=user, ended=False).last()
         if temp_session is not None:
             self.session = temp_session
         self.session = Session.objects.create(user=user)
         serialized_session = dict(SessionSerializer(self.session).data)
-        self.send(text_data=json.dumps({"message": "Session started",
-                                        "data": serialized_session}))
 
+        self.send(text_data=json.dumps({"message": "Init recorded",
+                                        "data": {
+                                            "organization": serialized_organization,
+                                            "game": serialized_game,
+                                            "user": serialized_user,
+                                            "session": serialized_session
+                                            }
+                                        }))
+        
     def handle_task(self, payload):
         missing_fields, fields = self.check_fields(payload, ["organization_name","game_name", "version_number", "vendor_id", "platform", "task_uuid", "task_name"])
         if missing_fields:
