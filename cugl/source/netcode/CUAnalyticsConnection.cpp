@@ -109,7 +109,6 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
 
     send(initPayload);
-    // close();
 
     return true;
 }
@@ -137,7 +136,6 @@ bool AnalyticsConnection::open()
 
 bool AnalyticsConnection::close()
 {
-    CULog("CLOOOOOOSE");
     _webSocket->close();
     while (!(_webSocket->getState() == WebSocket::State::CLOSED)) {}
     return true;
@@ -161,7 +159,6 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data){
     catch (const std::exception &ex)
     {
         CULogError("ANALYTICS ERROR: %s", ex.what());
-        CULog("CLOSEEEEEE");
         _webSocket->close();
         return false;
     }
