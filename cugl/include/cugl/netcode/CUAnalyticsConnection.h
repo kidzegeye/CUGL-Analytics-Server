@@ -3,11 +3,9 @@
 
 #include <string>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 #include <cugl/netcode/CUWebSocket.h>
 #include <cugl/core/util/CUHashtools.h>
-#include <cugl/netcode/CUNetcodeSerializer.h>
 #include <cugl/netcode/CUWebSocketConfig.h>
 
 namespace cugl
@@ -214,8 +212,6 @@ namespace cugl
                
 private:
                 std::shared_ptr<WebSocket> _webSocket;
-                std::shared_ptr<NetcodeSerializer> _serializer;
-                std::shared_ptr<NetcodeDeserializer> _deserializer;
                 std::shared_ptr<WebSocketConfig> _config;
                 std::string _organization_name;
                 std::string _game_name;

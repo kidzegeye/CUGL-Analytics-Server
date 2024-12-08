@@ -20,7 +20,11 @@ class MainConsumer(WebsocketConsumer):
         """
         Ends the websocket connection
         """
+
         if self.session is not None and not self.session.ended:
+            # End active task attempts. 
+            TaskAttempt.objects.filter(session=self.session, status=TaskAttempt.Status.PENDING).update(status=TaskAttempt.Status.PREEMPED)
+
             self.session.ended = True
             self.session.ended_at = now()
             self.session.save()
@@ -99,16 +103,16 @@ class MainConsumer(WebsocketConsumer):
         serialized_session = dict(SessionSerializer(self.session).data)
 
         self.send_formatted(text_data=json.dumps({"message": "Init recorded",
-                                        "data": {
-                                            "organization": serialized_organization,
-                                            "game": serialized_game,
-                                            "user": serialized_user,
-                                            "session": serialized_session
-                                            }
-                                        }))
-        
+                                                  "data": {
+                                                        "organization": serialized_organization,
+                                                        "game": serialized_game,
+                                                        "user": serialized_user,
+                                                        "session": serialized_session
+                                                        }
+                                                  }))
+
     def handle_task(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["organization_name","game_name", "version_number", "vendor_id", "platform", "task_uuid", "task_name"])
+        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_uuid", "task_name"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
@@ -121,21 +125,21 @@ class MainConsumer(WebsocketConsumer):
             return
         game = Game.objects.filter(organization=organization, game_name=payload["game_name"], version_number=payload["version_number"]).first()
         if not game:
-            self.send_formatted(text_data=json.dumps({"error": f"Game does not exist: '{payload['package_name']} version {payload['version_number']}'.\
+            self.send_formatted(text_data=json.dumps({"error": f"Game does not exist: '{payload['game_name']} version {payload['version_number']}'.\
                                                                Not processing request."}))
             return
         user = User.objects.filter(game=game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
         if not user:
-            self.send_formatted(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['package_name']} version {payload['version_number']}'.\
+            self.send_formatted(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['game_name']} version {payload['version_number']}'.\
                                                                Not processing request."}))
             return
-        task, _ = Task.objects.get_or_create(user=user, task_uuid=payload["task_uuid"], task_name=payload["task_name"])
+        task, _ = Task.objects.get_or_create(task_uuid=payload["task_uuid"], task_name=payload["task_name"], game=game)
         serialized_task = dict(TaskSerializer(task).data)
         self.send_formatted(text_data=json.dumps({"message": "Task recorded",
-                                        "data": serialized_task}))
+                                                  "data": serialized_task}))
 
     def handle_task_attempt(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["task_uuid", "task_attempt_uuid", "statistics"])
+        missing_fields, fields = self.check_fields(payload, ["task_uuid", "task_attempt_uuid", "vendor_id", "platform", "statistics"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
@@ -145,19 +149,26 @@ class MainConsumer(WebsocketConsumer):
             self.send_formatted(text_data=json.dumps({"error": f"Task does not exist: '{payload['task_uuid']}'.\
                                                                Not processing request."}))
             return
-        session = Session.objects.filter(user=task.user, ended=False).last()
-        if not session:
-            self.send_formatted(text_data=json.dumps({"error": "Active session does not exist. Not processing request."}))
+        
+        user = User.objects.filter(game=task.game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
+        if not user:
+            self.send_formatted(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {task.game.game_name} version {task.game.version_number}'.\
+                                                               Not processing request."}))
             return
+        temp_session = Session.objects.filter(user=user, ended=False).last()
+        if temp_session is not None:
+            self.session = temp_session
+        else:
+            self.session = Session.objects.create(user=user)
         task_attempt, _ = TaskAttempt.objects.get_or_create(
                                                         task=task,
                                                         task_attempt_uuid=payload["task_attempt_uuid"],
-                                                        session=session,
+                                                        session=self.session,
                                                         status="not_started",
                                                         statistics=payload["statistics"])
         serialized_task_attempt = dict(TaskAttemptSerializer(task_attempt).data)
         self.send_formatted(text_data=json.dumps({"message": "Task Attempt recorded",
-                                        "data": serialized_task_attempt}))
+                                                  "data": serialized_task_attempt}))
 
     def handle_sync_task_attempt(self, payload):
         missing_fields, fields = self.check_fields(payload, ["task_attempt_uuid", "status", "statistics", "num_failures"])
@@ -190,15 +201,15 @@ class MainConsumer(WebsocketConsumer):
         task_attempt.save()
         serialized_task_attempt = dict(TaskAttemptSerializer(task_attempt).data)
         self.send_formatted(text_data=json.dumps({"message": "Task Attempt synced",
-                                        "data": serialized_task_attempt}))
+                                                  "data": serialized_task_attempt}))
 
     def handle_action(self, payload):
         if self.session is None:
-            self.send_formatted(close=True, text_data=json.dumps({"error": "No active session found.\
+            self.send_formatted(text_data=json.dumps({"error": "No active session found.\
                                                                Not processing request."}))
             return
         if Session.objects.get(id=self.session.id).ended:
-            self.send_formatted(close=True, text_data=json.dumps({"error": "Latest session is not active, please start a new one.\
+            self.send_formatted(text_data=json.dumps({"error": "Latest session is not active, please start a new one.\
                                                                Not processing request."}))
             return
 

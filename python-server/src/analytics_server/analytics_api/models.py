@@ -51,12 +51,12 @@ class Task(models.Model):
     class Meta:
         db_table = 'analytics_api_task'
         constraints = [
-            models.UniqueConstraint(fields=['user', 'task_uuid', 'task_name'], name='unique task')
+            models.UniqueConstraint(fields=['task_uuid', 'task_name', 'game'], name='unique task')
         ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
     task_uuid = models.TextField(unique=True)
     task_name = models.TextField()
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
 
 
 class TaskAttempt(models.Model):

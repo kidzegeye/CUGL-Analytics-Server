@@ -41,7 +41,6 @@
 //  Author:
 //  Version:
 #include <cugl/netcode/CUNetworkLayer.h>
-#include <cugl/netcode/CUNetcodeSerializer.h>
 #include <cugl/core/assets/CUJsonValue.h>
 #include <cugl/netcode/CUAnalyticsConnection.h>
 #include <cugl/netcode/CUWebSocket.h>
@@ -54,8 +53,6 @@ using namespace std;
 #pragma mark Constructors
 
 AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr),
-                                             _serializer(nullptr),
-                                             _deserializer(nullptr),
                                              _config(nullptr),
                                              _organization_name(""),
                                              _game_name(""),
@@ -75,8 +72,6 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     // System platform
     InetAddress address = InetAddress(config.bindaddr,config.port);
     _webSocket = WebSocket::alloc(address);
-    _serializer = NetcodeSerializer::alloc();
-    _deserializer = NetcodeDeserializer::alloc();
     _organization_name = organization_name;
     _game_name = game_name;
     _version_number = version_number;
@@ -127,10 +122,9 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
 }
 
 void AnalyticsConnection::dispose()
-{
+{   
+    _webSocket->close();
     _webSocket = nullptr;
-    _serializer = nullptr;
-    _deserializer = nullptr;
     _organization_name = "";
     _game_name = "";
     _version_number = "";
