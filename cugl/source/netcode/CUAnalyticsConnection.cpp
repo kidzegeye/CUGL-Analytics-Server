@@ -191,8 +191,6 @@ bool AnalyticsConnection::addTask(const std::shared_ptr<Task> &task){
         "\"version_number\": \"" + _version_number + "\","
         "\"vendor_id\": \"" + _vendor_id + "\","
         "\"platform\": \"" + _platform + "\","
-        "\"vendor_id\": \"" + _vendor_id + "\","
-        "\"task_uuid\": \"" + task->getUUID() + "\","
         "\"task_name\": \"" + task->getName() + "\""
         "}}";
 
@@ -211,7 +209,12 @@ bool AnalyticsConnection::addTasks(const std::vector<std::shared_ptr<Task>> &tas
 bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt){
     std::string taskAttemptString = "{\"message_type\": \"task_attempt\","
         "\"message_payload\": {"
-        "\"task_uuid\": \"" + taskAttempt->getTask()->getUUID() + "\","
+        "\"organization_name\": \"" + _organization_name + "\","
+        "\"game_name\": \"" + _game_name + "\","
+        "\"version_number\": \"" + _version_number + "\","
+        "\"vendor_id\": \"" + _vendor_id + "\","
+        "\"platform\": \"" + _platform + "\","
+        "\"task_name\": \"" + taskAttempt->getTask()->getName() + "\","
         "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\","
         "\"statistics\": \"" + taskAttempt->getTaskStatistics()->toString() + "\""
         "}}";
@@ -236,6 +239,11 @@ bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &ta
 bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob){
     std::string actionString = "{\"message_type\": \"action\","
         "\"message_payload\": {"
+        "\"organization_name\": \"" + _organization_name + "\","
+        "\"game_name\": \"" + _game_name + "\","
+        "\"version_number\": \"" + _version_number + "\","
+        "\"vendor_id\": \"" + _vendor_id + "\","
+        "\"platform\": \"" + _platform + "\","
         "\"data\": " + actionBlob->toString()+"}}";
     std::shared_ptr<JsonValue> actionPayload = JsonValue::allocWithJson(actionString);
 

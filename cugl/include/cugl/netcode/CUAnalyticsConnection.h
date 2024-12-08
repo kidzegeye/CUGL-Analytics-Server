@@ -30,19 +30,17 @@ namespace cugl
             {
 
             public:
-                Task() : _name(""), _uuid("") {}
+                Task() : _name("") {}
         
                 ~Task() { dispose(); }
             private:
                 void dispose()
                 {
                     _name = "";
-                    _uuid = "";
                 }
                 bool init(std::string name)
                 {
                     _name = name;
-                    _uuid = hashtool::generate_uuid();
                     return true;
                 };
             public:
@@ -53,11 +51,9 @@ namespace cugl
                 }
 
                 std::string getName() const { return _name; }
-                std::string getUUID() const { return _uuid; }
 
             private:
                 std::string _name;
-                std::string _uuid;
             };
 
             class TaskAttempt

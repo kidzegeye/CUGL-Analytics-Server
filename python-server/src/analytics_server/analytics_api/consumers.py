@@ -112,49 +112,39 @@ class MainConsumer(WebsocketConsumer):
                                                   }))
 
     def handle_task(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_uuid", "task_name"])
+        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
 
-        organization = Organization.objects.filter(organization_name=payload["organization_name"]).first()
-        if not organization:
-            self.send_formatted(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['organization_name']}'.\
-                                                               Not processing request."}))
+        success, val = self.get_org_game_user(payload)
+        if not success:
             return
-        game = Game.objects.filter(organization=organization, game_name=payload["game_name"], version_number=payload["version_number"]).first()
-        if not game:
-            self.send_formatted(text_data=json.dumps({"error": f"Game does not exist: '{payload['game_name']} version {payload['version_number']}'.\
-                                                               Not processing request."}))
-            return
-        user = User.objects.filter(game=game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
-        if not user:
-            self.send_formatted(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['game_name']} version {payload['version_number']}'.\
-                                                               Not processing request."}))
-            return
-        task, _ = Task.objects.get_or_create(task_uuid=payload["task_uuid"], task_name=payload["task_name"], game=game)
+        organization, game, user = val
+        task, _ = Task.objects.get_or_create(task_name=payload["task_name"], game=game)
         serialized_task = dict(TaskSerializer(task).data)
         self.send_formatted(text_data=json.dumps({"message": "Task recorded",
                                                   "data": serialized_task}))
 
     def handle_task_attempt(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["task_uuid", "task_attempt_uuid", "vendor_id", "platform", "statistics"])
+        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name", "task_attempt_uuid", "statistics"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        task = Task.objects.filter(task_uuid=payload["task_uuid"]).first()
+        
+        success, val = self.get_org_game_user(payload)
+        if not success:
+            return
+        organization, game, user = val
+
+        task = Task.objects.filter(task_name=payload["task_name"], game=game).first()
         if not task:
-            self.send_formatted(text_data=json.dumps({"error": f"Task does not exist: '{payload['task_uuid']}'.\
+            self.send_formatted(text_data=json.dumps({"error": f"Task does not exist: '{payload['task_name']}'.\
                                                                Not processing request."}))
             return
         
-        user = User.objects.filter(game=task.game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
-        if not user:
-            self.send_formatted(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {task.game.game_name} version {task.game.version_number}'.\
-                                                               Not processing request."}))
-            return
         temp_session = Session.objects.filter(user=user, ended=False).last()
         if temp_session is not None:
             self.session = temp_session
@@ -204,20 +194,22 @@ class MainConsumer(WebsocketConsumer):
                                                   "data": serialized_task_attempt}))
 
     def handle_action(self, payload):
-        if self.session is None:
-            self.send_formatted(text_data=json.dumps({"error": "No active session found.\
-                                                               Not processing request."}))
-            return
-        if Session.objects.get(id=self.session.id).ended:
-            self.send_formatted(text_data=json.dumps({"error": "Latest session is not active, please start a new one.\
-                                                               Not processing request."}))
-            return
-
-        missing_fields, fields = self.check_fields(payload, ["data"])
+        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "data"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
+        
+        success, val = self.get_org_game_user(payload)
+        if not success:
+            return
+        organization, game, user = val
+
+        temp_session = Session.objects.filter(user=user, ended=False).last()
+        if temp_session is not None:
+            self.session = temp_session
+        else:
+            self.session = Session.objects.create(user=user)
 
         task_attempt = None
         if payload.get("task_attempt_uuid") is not None:
@@ -255,3 +247,21 @@ class MainConsumer(WebsocketConsumer):
             self.send(bytes_data=bytes_data, close=close)
         else:
             self.send(text_data=text_data, close=close)
+
+    def get_org_game_user(self, payload):
+        organization = Organization.objects.filter(organization_name=payload["organization_name"]).first()
+        if not organization:
+            self.send_formatted(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['organization_name']}'.\
+                                                               Not processing request."}))
+            return False, None
+        game = Game.objects.filter(organization=organization, game_name=payload["game_name"], version_number=payload["version_number"]).first()
+        if not game:
+            self.send_formatted(text_data=json.dumps({"error": f"Game does not exist: '{payload['game_name']} version {payload['version_number']}'.\
+                                                               Not processing request."}))
+            return False, None
+        user = User.objects.filter(game=game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
+        if not user:
+            self.send_formatted(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['game_name']} version {payload['version_number']}'.\
+                                                               Not processing request."}))
+            return False, None
+        return True, (organization, game, user)
