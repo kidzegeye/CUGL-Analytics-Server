@@ -50,7 +50,13 @@ protected:
 
     /** The connection to the analytics server */
     std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection> _analyticsConn;
-    
+
+    /** Tasks, and attempts for this scene */
+    std::vector<std::shared_ptr<cugl::netcode::analytics::TaskAttempt>> _taskAttempts;
+
+    /** Analytics user action indiciation */
+    std::shared_ptr<cugl::JsonValue> _userAction;
+
 public:
 #pragma mark -
 #pragma mark Constructors
@@ -89,7 +95,8 @@ public:
      *
      * @return true if the controller is initialized properly, false otherwise.
      */
-    bool init(const std::shared_ptr<cugl::AssetManager>& assets, const std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection>& analyticsConn);
+    bool init(const std::shared_ptr<cugl::AssetManager>& assets,
+        const std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection>& analyticsConn);
 
     /**
      * Sets whether the scene is currently active

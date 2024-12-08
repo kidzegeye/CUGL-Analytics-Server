@@ -103,6 +103,8 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
             transmitColor(Color4::RED);
             _clickAction->get("button_pressed")->set((std::string)"red");
             _analyticsConn->recordAction(_clickAction);
+            // TODO: figure out what happens (Not using allocWithJson)
+            _analyticsConn->recordAction(cugl::JsonValue::alloc("Clicked Red!"));
         }
     });
 

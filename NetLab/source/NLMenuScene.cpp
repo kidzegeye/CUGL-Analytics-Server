@@ -53,6 +53,29 @@ bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
     
     // Store the analytics server pointer
     _analyticsConn = analyticsConn;
+    // Define tasks for the scene
+    // TODO: How many times will they be called?
+    std::shared_ptr<cugl::netcode::analytics::Task> task0 = cugl::netcode::analytics::Task::alloc("Host Lobby once.");
+    if (task0 != nullptr) {
+        bool status = _analyticsConn->addTask(task0);
+        auto attempt0 = cugl::netcode::analytics::TaskAttempt::alloc(task0, nullptr);
+        attempt0->setStatus(cugl::netcode::analytics::TaskAttempt::Status::PENDING);
+        _taskAttempts.push_back(nullptr);
+    }
+    // Can I reuse the shared_ptr?
+    std::shared_ptr<cugl::netcode::analytics::Task> task1 = cugl::netcode::analytics::Task::alloc("Join Lobby 5 times");
+    if (task0 != nullptr) {
+        bool status = _analyticsConn->addTask(task1);
+        auto attempt1 = cugl::netcode::analytics::TaskAttempt::alloc(task0, nullptr);
+        attempt1->setStatus(cugl::netcode::analytics::TaskAttempt::Status::PENDING);
+        _taskAttempts.push_back(attempt1);
+    }
+
+    // Create placeholder key possible actions
+    _userAction = JsonValue::allocObject();
+    _userAction->appendChild("", JsonValue::allocNull());
+    // Play around
+    _userAction->appendChild("Cody", JsonValue::alloc((std::string)"Cody"));
     
     // Acquire the scene built by the asset loader and resize it the scene
     std::shared_ptr<scene2::SceneNode> scene = _assets->get<scene2::SceneNode>("menu");
@@ -66,11 +89,16 @@ bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
     _hostbutton->addListener([this](const std::string& name, bool down) {
         if (down) {
             _choice = Choice::HOST;
+            _userAction->get("")->set((std::string)"Hosted a lobby!");
+            _analyticsConn->recordAction(_userAction);
+            // 
         }
     });
     _joinbutton->addListener([this](const std::string& name, bool down) {
         if (down) {
             _choice = Choice::JOIN;
+            _userAction->get("")->set((std::string)"Joined a lobby!");
+            _analyticsConn->recordAction(_userAction);
         }
     });
 
@@ -86,7 +114,12 @@ void MenuScene::dispose() {
     if (_active) {
         removeAllChildren();
         _active = false;
+        for (auto task : _taskAttempts) {
+            task = nullptr;
+        }
+        _taskAttempts.clear();
     }
+    
 }
 
 
