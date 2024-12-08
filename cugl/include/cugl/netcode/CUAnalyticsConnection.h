@@ -217,7 +217,6 @@ private:
                 std::shared_ptr<NetcodeSerializer> _serializer;
                 std::shared_ptr<NetcodeDeserializer> _deserializer;
                 std::shared_ptr<WebSocketConfig> _config;
-                WebSocket::Dispatcher _dispatcher;
                 std::string _organization_name;
                 std::string _game_name;
                 std::string _version_number;

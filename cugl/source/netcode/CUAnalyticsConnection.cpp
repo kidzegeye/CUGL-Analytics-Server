@@ -55,7 +55,6 @@ using namespace std;
 
 AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr),
                                              _serializer(nullptr),
-                                             _dispatcher(nullptr),
                                              _deserializer(nullptr),
                                              _config(nullptr),
                                              _organization_name(""),
@@ -85,17 +84,31 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     _platform = APP_GetDeviceModel();
     _config = std::make_shared<WebSocketConfig>(config);
 
-    _dispatcher = [this](const std::vector<std::byte> &message, Uint64 time)
+    WebSocket::Dispatcher dispatcher = [this](const std::vector<std::byte> &message, Uint64 time)
     {
-        _deserializer->receive(message);
-        std::shared_ptr<JsonValue> responseMessage = _deserializer->readJson();
-        CULog("Dispatch response: %s", responseMessage->toString().c_str());
-        if (responseMessage->has("error"))
+        std::ostringstream disp;
+        for (const auto &byte : message) {
+            disp << static_cast<char>(byte);
+        }
+        
+        std::shared_ptr<JsonValue> responseJSON = JsonValue::allocWithJson( disp.str());
+        CULog("ANALYTICS RESPONSE: %s", responseJSON->toString().c_str());
+        if (responseJSON->has("error"))
         {
-            std::string errorMessage = responseMessage->get("error")->asString();
+            std::string errorMessage = responseJSON->get("error")->asString();
             throw(errorMessage);
         }
     };
+
+    WebSocket::StateCallback stateCallback = [this](const WebSocket::State state)
+    {
+        
+        CULog("State change: %d", state);
+    };
+
+    _webSocket->onReceipt(dispatcher);
+    _webSocket->onStateChange(stateCallback);
+
     open();
     
     std::string initJSONString = "{\"message_type\": \"init\","
@@ -118,7 +131,6 @@ void AnalyticsConnection::dispose()
     _webSocket = nullptr;
     _serializer = nullptr;
     _deserializer = nullptr;
-    _dispatcher = nullptr;
     _organization_name = "";
     _game_name = "";
     _version_number = "";
@@ -144,7 +156,7 @@ bool AnalyticsConnection::close()
 bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data){
     if (!_webSocket->isOpen()){
         CULogError("ANALYTICS ERROR: Websocket was not opened before sending");
-        return false;
+        open();
     }
     // Need to encode bytes without metadata from NetcodeSerializer
     std::vector<std::byte> bytes;
@@ -154,7 +166,6 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data){
             bytes.push_back(static_cast<std::byte>(c));
         }
         _webSocket->send(bytes);
-      //  _webSocket->onReceipt(_dispatcher);
     }
     catch (const std::exception &ex)
     {

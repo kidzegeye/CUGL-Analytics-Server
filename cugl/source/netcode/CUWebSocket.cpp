@@ -224,7 +224,7 @@ void WebSocket::onClosed() {
         _onStateChange(_state);
     }
     
-    dispose();
+    // dispose();
 }
 
 /**
@@ -237,7 +237,7 @@ void WebSocket::onMessage(rtc::message_variant data) {
     if (!std::holds_alternative<rtc::binary>(data)) {
         return;
     }
-    
+     
     append(std::get<rtc::binary>(data),NetworkLayer::get()->getTime());
 }
 
