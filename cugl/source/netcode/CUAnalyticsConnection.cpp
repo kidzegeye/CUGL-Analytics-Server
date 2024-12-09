@@ -2,7 +2,11 @@
 //  CUAnalyticsConnection.h
 //  Cornell University Game Library (CUGL)
 //
-//  [ desc ]
+//  This class provides the ability to keep track of Game Analytics. Analytics such
+//  as Tasks, TaskAttempts and Actions can be recorded and sent to a postgres server.
+//  It can also be used to keep track of session data. So every user session can be
+//  logged using this class. This clas makes use of CUWebSocket class to connect to
+//  the python backend server which then stores the analytics to a postgreSQL database.
 //
 //  This class uses our standard shared-pointer architecture.
 //
@@ -45,32 +49,53 @@
 #include <cugl/netcode/CUAnalyticsConnection.h>
 #include <cugl/netcode/CUWebSocket.h>
 #include <cugl/core/util/CUDebug.h>
+
 #include <SDL_app.h>
+#include <sstream>
 
 using namespace cugl::netcode::analytics;
 using namespace std;
 
 #pragma mark Constructors
-
+/**
+ * Creates a degenerate websocket connection along with empty initializations for gameMetaData.
+ *
+ * This object has not been initialized with a {@link NetcodeConfig} and cannot
+ * be used.
+ *
+ * You should NEVER USE THIS CONSTRUCTOR. All connections should be created by
+ * the static constructor {@link #alloc} instead.
+ */
 AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr),
                                              _config(nullptr),
                                              _organization_name(""),
                                              _game_name(""),
-                                             _version_number(""), 
+                                             _version_number(""),
                                              _vendor_id(""),
                                              _platform("") {}
 
+/**
+ * Deletes the analytics websocket connection, disposing all resources
+ */
 AnalyticsConnection::~AnalyticsConnection()
 {
     dispose();
 }
 
+/**
+ * Initializes the AnalyticsConnection with the given websocket configuration along
+ * with the game MetaData.
+ *
+ * @param config The WebSocket configuration.
+ * @param organization_name The name of the organization.
+ * @param game_name The name of the game.
+ * @param version_number The version number of the game.
+ * @return true if initialization was successful, false otherwise.
+ */
 bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number)
 {
 
-    // Get UUID from the hashtool functions system_uuid()
-    // System platform
-    InetAddress address = InetAddress(config.bindaddr,config.port);
+    InetAddress address = InetAddress(config.bindaddr, config.port);
     _webSocket = WebSocket::alloc(address);
     _organization_name = organization_name;
     _game_name = game_name;
@@ -82,11 +107,12 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     WebSocket::Dispatcher dispatcher = [this](const std::vector<std::byte> &message, Uint64 time)
     {
         std::ostringstream disp;
-        for (const auto &byte : message) {
+        for (const auto &byte : message)
+        {
             disp << static_cast<char>(byte);
         }
-        
-        std::shared_ptr<JsonValue> responseJSON = JsonValue::allocWithJson( disp.str());
+
+        std::shared_ptr<JsonValue> responseJSON = JsonValue::allocWithJson(disp.str());
         CULog("ANALYTICS RESPONSE: %s", responseJSON->toString().c_str());
         if (responseJSON->has("error"))
         {
@@ -97,7 +123,6 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
 
     WebSocket::StateCallback stateCallback = [this](const WebSocket::State state)
     {
-        
         CULog("State change: %d", state);
     };
 
@@ -105,15 +130,20 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     _webSocket->onStateChange(stateCallback);
 
     open();
-    
+
     std::string initJSONString = "{\"message_type\": \"init\","
-        "\"message_payload\": {"
-        "\"organization_name\": \"" + _organization_name + "\","
-        "\"game_name\": \"" + _game_name + "\","
-        "\"version_number\": \"" + _version_number + "\","
-        "\"vendor_id\": \"" + _vendor_id + "\","
-        "\"platform\": \"" + _platform + "\""
-        "}}";
+                                 "\"message_payload\": {"
+                                 "\"organization_name\": \"" +
+                                 _organization_name + "\","
+                                                      "\"game_name\": \"" +
+                                 _game_name + "\","
+                                              "\"version_number\": \"" +
+                                 _version_number + "\","
+                                                   "\"vendor_id\": \"" +
+                                 _vendor_id + "\","
+                                              "\"platform\": \"" +
+                                 _platform + "\""
+                                             "}}";
     std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
 
     send(initPayload);
@@ -121,8 +151,13 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     return true;
 }
 
+/**
+ * Disposes of the AnalyticsConnection resources.
+ *
+ * Closes the WebSocket and resets member variables to their default values.
+ */
 void AnalyticsConnection::dispose()
-{   
+{
     _webSocket->close();
     _webSocket = nullptr;
     _organization_name = "";
@@ -133,22 +168,44 @@ void AnalyticsConnection::dispose()
     _config = nullptr;
 }
 
+/**
+ * Opens the WebSocket connection.
+ *
+ * @return true if the connection was successfully opened.
+ */
 bool AnalyticsConnection::open()
 {
     _webSocket->open(_config->secure);
-    while (!_webSocket->isOpen()){}
+    while (!_webSocket->isOpen())
+    {
+    }
     return true;
 }
 
+/**
+ * Closes the WebSocket connection.
+ *
+ * @return true if the connection was successfully closed.
+ */
 bool AnalyticsConnection::close()
 {
     _webSocket->close();
-    while (!(_webSocket->getState() == WebSocket::State::CLOSED)) {}
+    while (!(_webSocket->getState() == WebSocket::State::CLOSED))
+    {
+    }
     return true;
 }
 
-bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data){
-    if (!_webSocket->isOpen()){
+/**
+ * Sends data to the WebSocket server.
+ *
+ * @param data The JSON data to send.
+ * @return true if the data was successfully sent, false otherwise.
+ */
+bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
+{
+    if (!_webSocket->isOpen())
+    {
         CULogError("ANALYTICS ERROR: Websocket was not opened before sending");
         open();
     }
@@ -156,7 +213,8 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data){
     std::vector<std::byte> bytes;
     try
     {
-        for (char& c : data->toString()) {
+        for (char &c : data->toString())
+        {
             bytes.push_back(static_cast<std::byte>(c));
         }
         _webSocket->send(bytes);
@@ -167,86 +225,160 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data){
         _webSocket->close();
         return false;
     }
-    if (getDebug()){
+    if (getDebug())
+    {
         CULog("ANALYTICS SENT: %s", data->toString().c_str());
     }
     return true;
 }
 
+/**
+ * Sets the debug flag for the WebSocket.
+ *
+ * @param flag The debug flag to set.
+ */
 void AnalyticsConnection::setDebug(bool flag)
 {
     _webSocket->setDebug(flag);
 }
 
+/**
+ * Gets the current debug flag status.
+ *
+ * @return true if debugging is enabled, false otherwise.
+ */
 bool AnalyticsConnection::getDebug()
 {
     return _webSocket->getDebug();
 }
 
-bool AnalyticsConnection::addTask(const std::shared_ptr<Task> &task){
+/**
+ * Adds a task to the analytics database.
+ *
+ * @param task The task to add.
+ * @return true if the task was successfully added, false otherwise.
+ */
+bool AnalyticsConnection::addTask(const std::shared_ptr<Task> &task)
+{
     std::string taskString = "{\"message_type\": \"task\","
-        "\"message_payload\": {"
-        "\"organization_name\": \"" + _organization_name + "\","
-        "\"game_name\": \"" + _game_name + "\","
-        "\"version_number\": \"" + _version_number + "\","
-        "\"vendor_id\": \"" + _vendor_id + "\","
-        "\"platform\": \"" + _platform + "\","
-        "\"task_name\": \"" + task->getName() + "\""
-        "}}";
+                             "\"message_payload\": {"
+                             "\"organization_name\": \"" +
+                             _organization_name + "\","
+                                                  "\"game_name\": \"" +
+                             _game_name + "\","
+                                          "\"version_number\": \"" +
+                             _version_number + "\","
+                                               "\"vendor_id\": \"" +
+                             _vendor_id + "\","
+                                          "\"platform\": \"" +
+                             _platform + "\","
+                                         "\"task_name\": \"" +
+                             task->getName() + "\""
+                                               "}}";
 
     std::shared_ptr<JsonValue> taskPayload = JsonValue::allocWithJson(taskString);
 
     return send(taskPayload);
 }
-bool AnalyticsConnection::addTasks(const std::vector<std::shared_ptr<Task>> &tasks){
+
+/**
+ * Adds multiple tasks to the analytics database.
+ *
+ * @param tasks The list of tasks to add.
+ * @return true if all tasks were successfully added, false otherwise.
+ */
+bool AnalyticsConnection::addTasks(const std::vector<std::shared_ptr<Task>> &tasks)
+{
     bool success = true;
-    for(const std::shared_ptr<Task>& task : tasks){
+    for (const std::shared_ptr<Task> &task : tasks)
+    {
         success = success && addTask(task);
     }
     return success;
 };
 
-bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt){
+/**
+ * Adds a task attempt to the analytics database.
+ *
+ * @param taskAttempt The task attempt to add.
+ * @return true if the task attempt was successfully added, false otherwise.
+ */
+bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt)
+{
     std::string taskAttemptString = "{\"message_type\": \"task_attempt\","
-        "\"message_payload\": {"
-        "\"organization_name\": \"" + _organization_name + "\","
-        "\"game_name\": \"" + _game_name + "\","
-        "\"version_number\": \"" + _version_number + "\","
-        "\"vendor_id\": \"" + _vendor_id + "\","
-        "\"platform\": \"" + _platform + "\","
-        "\"task_name\": \"" + taskAttempt->getTask()->getName() + "\","
-        "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\","
-        "\"statistics\": \"" + taskAttempt->getTaskStatistics()->toString() + "\""
-        "}}";
+                                    "\"message_payload\": {"
+                                    "\"organization_name\": \"" +
+                                    _organization_name + "\","
+                                                         "\"game_name\": \"" +
+                                    _game_name + "\","
+                                                 "\"version_number\": \"" +
+                                    _version_number + "\","
+                                                      "\"vendor_id\": \"" +
+                                    _vendor_id + "\","
+                                                 "\"platform\": \"" +
+                                    _platform + "\","
+                                                "\"task_name\": \"" +
+                                    taskAttempt->getTask()->getName() + "\","
+                                                                        "\"task_attempt_uuid\": \"" +
+                                    taskAttempt->getUUID() + "\","
+                                                             "\"statistics\": \"" +
+                                    taskAttempt->getTaskStatistics()->toString() + "\""
+                                                                                   "}}";
 
     std::shared_ptr<JsonValue> taskAttemptPayload = JsonValue::allocWithJson(taskAttemptString);
 
     return send(taskAttemptPayload);
 }
-bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt){
+
+/**
+ * Synchronizes a task attempt with the analytics database. This updates the
+ * status of a specific taskAttempt
+ *
+ * @param taskAttempt The task attempt to synchronize.
+ * @return true if the synchronization was successful, false otherwise.
+ */
+bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt)
+{
     std::string syncTaskAttemptString = "{\"message_type\": \"sync_task_attempt\","
-        "\"message_payload\": {"
-        "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\","
-        "\"status\": \"" + taskAttempt->getStatusAsString() + "\","
-        "\"num_failures\": \"" + std::to_string(taskAttempt->getNumFailures()) + "\","
-        "\"statistics\": \"" + taskAttempt->getTaskStatistics()->toString() + "\""
-        "}}";
+                                        "\"message_payload\": {"
+                                        "\"task_attempt_uuid\": \"" +
+                                        taskAttempt->getUUID() + "\","
+                                                                 "\"status\": \"" +
+                                        taskAttempt->getStatusAsString() + "\","
+                                                                           "\"num_failures\": \"" +
+                                        std::to_string(taskAttempt->getNumFailures()) + "\","
+                                                                                        "\"statistics\": \"" +
+                                        taskAttempt->getTaskStatistics()->toString() + "\""
+                                                                                       "}}";
 
     std::shared_ptr<JsonValue> syncTaskAttemptPayload = JsonValue::allocWithJson(syncTaskAttemptString);
 
     return send(syncTaskAttemptPayload);
 }
-bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob){
+
+/**
+ * Records an action in the analytics database. Actions
+ *
+ * @param actionBlob The JSON data representing the action.
+ * @return true if the action was successfully recorded, false otherwise.
+ */
+bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob)
+{
     std::string actionString = "{\"message_type\": \"action\","
-        "\"message_payload\": {"
-        "\"organization_name\": \"" + _organization_name + "\","
-        "\"game_name\": \"" + _game_name + "\","
-        "\"version_number\": \"" + _version_number + "\","
-        "\"vendor_id\": \"" + _vendor_id + "\","
-        "\"platform\": \"" + _platform + "\","
-        "\"data\": " + actionBlob->toString()+"}}";
+                               "\"message_payload\": {"
+                               "\"organization_name\": \"" +
+                               _organization_name + "\","
+                                                    "\"game_name\": \"" +
+                               _game_name + "\","
+                                            "\"version_number\": \"" +
+                               _version_number + "\","
+                                                 "\"vendor_id\": \"" +
+                               _vendor_id + "\","
+                                            "\"platform\": \"" +
+                               _platform + "\","
+                                           "\"data\": " +
+                               actionBlob->toString() + "}}";
     std::shared_ptr<JsonValue> actionPayload = JsonValue::allocWithJson(actionString);
 
     return send(actionPayload);
 }
-
