@@ -15,6 +15,7 @@
 #include "NLMenuScene.h"
 
 using namespace cugl;
+using namespace cugl::netcode::analytics;
 using namespace std;
 
 #pragma mark -
@@ -40,7 +41,7 @@ using namespace std;
  *
  * @return true if the controller is initialized properly, false otherwise.
  */
-bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection>& analyticsConn) {
+bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const std::shared_ptr<AnalyticsConnection>& analyticsConn) {
     // Initialize the scene to a locked height
     if (assets == nullptr) {
         return false;
@@ -54,22 +55,26 @@ bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
     // Store the analytics server pointer
     _analyticsConn = analyticsConn;
     // Define tasks for the scene
-    // TODO: How many times will they be called?
-    std::shared_ptr<cugl::netcode::analytics::Task> task0 = cugl::netcode::analytics::Task::alloc("Host Lobby once.");
-    if (task0 != nullptr) {
-        bool status = _analyticsConn->addTask(task0);
-        auto attempt0 = cugl::netcode::analytics::TaskAttempt::alloc(task0, nullptr);
-        attempt0->setStatus(cugl::netcode::analytics::TaskAttempt::Status::PENDING);
-        _taskAttempts.push_back(nullptr);
-    }
+    // they will be called only once
+    std::shared_ptr<Task> task0 = Task::alloc("Host Lobby once.");
+    bool status = _analyticsConn->addTask(task0);
+    // create a reusable taskStatistic obj
+    std::shared_ptr<JsonValue> taskStats = JsonValue::allocObject();
+    // JsonValue::alloc(JsonValue::Type::NumberType)) set it to Number Type's default value
+    taskStats->appendChild("num_trial", JsonValue::alloc(JsonValue::Type::NumberType));
+
+    std::shared_ptr<TaskAttempt> attempt0 = TaskAttempt::alloc(task0, taskStats);
+    attempt0->setStatus(TaskAttempt::Status::PENDING);
+    _analyticsConn->addTaskAttempt(attempt0);
+    _taskAttempts.push_back(attempt0);
+
     // Can I reuse the shared_ptr?
-    std::shared_ptr<cugl::netcode::analytics::Task> task1 = cugl::netcode::analytics::Task::alloc("Join Lobby 5 times");
-    if (task0 != nullptr) {
-        bool status = _analyticsConn->addTask(task1);
-        auto attempt1 = cugl::netcode::analytics::TaskAttempt::alloc(task0, nullptr);
-        attempt1->setStatus(cugl::netcode::analytics::TaskAttempt::Status::PENDING);
-        _taskAttempts.push_back(attempt1);
-    }
+    std::shared_ptr<Task> task1 = Task::alloc("Join Lobby 5 times");
+    status = _analyticsConn->addTask(task1);
+    std::shared_ptr<TaskAttempt> attempt1 = TaskAttempt::alloc(task1, taskStats);
+    attempt1->setStatus(TaskAttempt::Status::PENDING);
+    _analyticsConn->addTaskAttempt(attempt1);
+    _taskAttempts.push_back(attempt1);
 
     // Create placeholder key possible actions
     _userAction = JsonValue::allocObject();
@@ -91,7 +96,18 @@ bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
             _choice = Choice::HOST;
             _userAction->get("")->set((std::string)"Hosted a lobby!");
             _analyticsConn->recordAction(_userAction);
-            // 
+            // sync the task Attempt here
+            std::shared_ptr<TaskAttempt> taskAtt0 = _taskAttempts[0];
+            std::shared_ptr<JsonValue> stats0 = taskAtt0->getTaskStatistics();
+            long val = stats0->getLong("num_trial") + 1;
+            if (!taskAtt0->hasEnded()) {
+                if (val == 1) {
+                    taskAtt0->setStatus(TaskAttempt::Status::SUCCEEDED);
+                }
+                stats0->get("num_trial")->set(val);
+                taskAtt0->setTaskStatistics(stats0);
+                _analyticsConn->syncTaskAttempt(taskAtt0);
+            }
         }
     });
     _joinbutton->addListener([this](const std::string& name, bool down) {
