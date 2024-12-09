@@ -115,6 +115,18 @@ bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
             _choice = Choice::JOIN;
             _userAction->get("")->set((std::string)"Joined a lobby!");
             _analyticsConn->recordAction(_userAction);
+            // sync the task Attempt here
+            std::shared_ptr<TaskAttempt> taskAtt1 = _taskAttempts[1];
+            std::shared_ptr<JsonValue> stats1 = taskAtt1->getTaskStatistics();
+            long val = stats1->getLong("num_trial") + 1;
+            if (!taskAtt1->hasEnded()) {
+                if (val == 5) {
+                    taskAtt1->setStatus(TaskAttempt::Status::SUCCEEDED);
+                }
+                stats1->get("num_trial")->set(val);
+                taskAtt1->setTaskStatistics(stats1);
+                _analyticsConn->syncTaskAttempt(taskAtt1);
+            }
         }
     });
 
