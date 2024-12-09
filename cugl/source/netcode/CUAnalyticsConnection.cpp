@@ -129,7 +129,9 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     _webSocket->onReceipt(dispatcher);
     _webSocket->onStateChange(stateCallback);
 
-    open();
+    if (!open()){
+        return false;
+    }
 
     std::string initJSONString = "{\"message_type\": \"init\","
                                  "\"message_payload\": {"
@@ -173,6 +175,10 @@ bool AnalyticsConnection::open()
     _webSocket->open(_config->secure);
     while (!_webSocket->isOpen())
     {
+        // Normally should be CONNECTING
+        if (_webSocket->getState() == WebSocket::State::CLOSED || _webSocket->getState() == WebSocket::State::FAILED){
+            return false;
+        }
     }
     return true;
 }
@@ -305,7 +311,7 @@ bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &tas
                                         "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\"," +
                                         "\"status\": \"" + taskAttempt->getStatusAsString() + "\","
                                         "\"num_failures\": \"" + std::to_string(taskAttempt->getNumFailures()) + "\","
-                                        "\"statistics\": \"" + taskAttempt->getTaskStatistics()->toString() + "\""
+                                        "\"statistics\": " + taskAttempt->getTaskStatistics()->toString() +
                                     "}}";
 
     std::shared_ptr<JsonValue> taskAttemptPayload = JsonValue::allocWithJson(taskAttemptString);
@@ -327,7 +333,7 @@ bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &ta
                                             "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\","
                                             "\"status\": \"" + taskAttempt->getStatusAsString() + "\","
                                             "\"num_failures\": \"" + std::to_string(taskAttempt->getNumFailures()) + "\","
-                                            "\"statistics\": \"" + taskAttempt->getTaskStatistics()->toString() + "\""
+                                            "\"statistics\": " + taskAttempt->getTaskStatistics()->toString() + 
                                         "}}";
 
     std::shared_ptr<JsonValue> syncTaskAttemptPayload = JsonValue::allocWithJson(syncTaskAttemptString);
