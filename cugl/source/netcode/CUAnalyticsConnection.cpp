@@ -208,7 +208,9 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
     if (!_webSocket->isOpen())
     {
         CULogError("ANALYTICS ERROR: Websocket was not opened before sending");
-        open();
+        if (!open()){
+            return false;
+        }
     }
     // Need to encode bytes without metadata from NetcodeSerializer
     std::vector<std::byte> bytes;
