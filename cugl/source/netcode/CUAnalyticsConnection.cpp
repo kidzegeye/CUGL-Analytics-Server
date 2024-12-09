@@ -133,17 +133,12 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
 
     std::string initJSONString = "{\"message_type\": \"init\","
                                  "\"message_payload\": {"
-                                 "\"organization_name\": \"" +
-                                 _organization_name + "\","
-                                                      "\"game_name\": \"" +
-                                 _game_name + "\","
-                                              "\"version_number\": \"" +
-                                 _version_number + "\","
-                                                   "\"vendor_id\": \"" +
-                                 _vendor_id + "\","
-                                              "\"platform\": \"" +
-                                 _platform + "\""
-                                             "}}";
+                                    "\"organization_name\": \"" + _organization_name + "\","
+                                    "\"game_name\": \"" + _game_name + "\","
+                                    "\"version_number\": \"" + _version_number + "\","
+                                    "\"vendor_id\": \"" +  _vendor_id + "\","
+                                    "\"platform\": \"" +  _platform + "\""
+                                 "}}";
     std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
 
     send(initPayload);
@@ -262,19 +257,13 @@ bool AnalyticsConnection::addTask(const std::shared_ptr<Task> &task)
 {
     std::string taskString = "{\"message_type\": \"task\","
                              "\"message_payload\": {"
-                             "\"organization_name\": \"" +
-                             _organization_name + "\","
-                                                  "\"game_name\": \"" +
-                             _game_name + "\","
-                                          "\"version_number\": \"" +
-                             _version_number + "\","
-                                               "\"vendor_id\": \"" +
-                             _vendor_id + "\","
-                                          "\"platform\": \"" +
-                             _platform + "\","
-                                         "\"task_name\": \"" +
-                             task->getName() + "\""
-                                               "}}";
+                                "\"organization_name\": \"" + _organization_name + "\","
+                                "\"game_name\": \"" + _game_name + "\","
+                                "\"version_number\": \"" + _version_number + "\","
+                                "\"vendor_id\": \"" + _vendor_id + "\","
+                                "\"platform\": \"" + _platform + "\","
+                                "\"task_name\": \"" + task->getName() + "\""
+                             "}}";
 
     std::shared_ptr<JsonValue> taskPayload = JsonValue::allocWithJson(taskString);
 
@@ -307,23 +296,17 @@ bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &tas
 {
     std::string taskAttemptString = "{\"message_type\": \"task_attempt\","
                                     "\"message_payload\": {"
-                                    "\"organization_name\": \"" +
-                                    _organization_name + "\","
-                                                         "\"game_name\": \"" +
-                                    _game_name + "\","
-                                                 "\"version_number\": \"" +
-                                    _version_number + "\","
-                                                      "\"vendor_id\": \"" +
-                                    _vendor_id + "\","
-                                                 "\"platform\": \"" +
-                                    _platform + "\","
-                                                "\"task_name\": \"" +
-                                    taskAttempt->getTask()->getName() + "\","
-                                                                        "\"task_attempt_uuid\": \"" +
-                                    taskAttempt->getUUID() + "\","
-                                                             "\"statistics\": \"" +
-                                    taskAttempt->getTaskStatistics()->toString() + "\""
-                                                                                   "}}";
+                                        "\"organization_name\": \"" + _organization_name + "\","
+                                        "\"game_name\": \"" + _game_name + "\","
+                                        "\"version_number\": \"" + _version_number + "\","
+                                        "\"vendor_id\": \"" +  _vendor_id + "\","
+                                        "\"platform\": \"" + _platform + "\","
+                                        "\"task_name\": \"" + taskAttempt->getTask()->getName() + "\","
+                                        "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\"," +
+                                        "\"status\": \"" + taskAttempt->getStatusAsString() + "\","
+                                        "\"num_failures\": \"" + std::to_string(taskAttempt->getNumFailures()) + "\","
+                                        "\"statistics\": \"" + taskAttempt->getTaskStatistics()->toString() + "\""
+                                    "}}";
 
     std::shared_ptr<JsonValue> taskAttemptPayload = JsonValue::allocWithJson(taskAttemptString);
 
@@ -341,15 +324,11 @@ bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &ta
 {
     std::string syncTaskAttemptString = "{\"message_type\": \"sync_task_attempt\","
                                         "\"message_payload\": {"
-                                        "\"task_attempt_uuid\": \"" +
-                                        taskAttempt->getUUID() + "\","
-                                                                 "\"status\": \"" +
-                                        taskAttempt->getStatusAsString() + "\","
-                                                                           "\"num_failures\": \"" +
-                                        std::to_string(taskAttempt->getNumFailures()) + "\","
-                                                                                        "\"statistics\": \"" +
-                                        taskAttempt->getTaskStatistics()->toString() + "\""
-                                                                                       "}}";
+                                            "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\","
+                                            "\"status\": \"" + taskAttempt->getStatusAsString() + "\","
+                                            "\"num_failures\": \"" + std::to_string(taskAttempt->getNumFailures()) + "\","
+                                            "\"statistics\": \"" + taskAttempt->getTaskStatistics()->toString() + "\""
+                                        "}}";
 
     std::shared_ptr<JsonValue> syncTaskAttemptPayload = JsonValue::allocWithJson(syncTaskAttemptString);
 
@@ -366,18 +345,13 @@ bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionB
 {
     std::string actionString = "{\"message_type\": \"action\","
                                "\"message_payload\": {"
-                               "\"organization_name\": \"" +
-                               _organization_name + "\","
-                                                    "\"game_name\": \"" +
-                               _game_name + "\","
-                                            "\"version_number\": \"" +
-                               _version_number + "\","
-                                                 "\"vendor_id\": \"" +
-                               _vendor_id + "\","
-                                            "\"platform\": \"" +
-                               _platform + "\","
-                                           "\"data\": " +
-                               actionBlob->toString() + "}}";
+                                    "\"organization_name\": \"" + _organization_name + "\","
+                                    "\"game_name\": \"" + _game_name + "\","
+                                    "\"version_number\": \"" + _version_number + "\","
+                                    "\"vendor_id\": \"" + _vendor_id + "\","
+                                    "\"platform\": \"" + _platform + "\","
+                                    "\"data\": " + actionBlob->toString() + 
+                                "}}";
     std::shared_ptr<JsonValue> actionPayload = JsonValue::allocWithJson(actionString);
 
     return send(actionPayload);

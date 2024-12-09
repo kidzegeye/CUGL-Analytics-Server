@@ -128,7 +128,7 @@ class MainConsumer(WebsocketConsumer):
                                                   "data": serialized_task}))
 
     def handle_task_attempt(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name", "task_attempt_uuid", "statistics"])
+        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name", "task_attempt_uuid", "status", "statistics", "num_failures"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
@@ -145,6 +145,12 @@ class MainConsumer(WebsocketConsumer):
                                                                Not processing request."}))
             return
         
+        if not any(payload["status"] in choice for choice in TaskAttempt.Status.choices):
+            self.send_formatted(text_data=json.dumps({"error": f"Invalid status: '{payload['status']}'.\
+                                                       Must be one of {TaskAttempt.Status.choices}\
+                                                               Not processing request."}))
+            return
+        
         temp_session = Session.objects.filter(user=user, ended=False).last()
         if temp_session is not None:
             self.session = temp_session
@@ -154,7 +160,8 @@ class MainConsumer(WebsocketConsumer):
                                                         task=task,
                                                         task_attempt_uuid=payload["task_attempt_uuid"],
                                                         session=self.session,
-                                                        status="not_started",
+                                                        status=payload["status"],
+                                                        num_failures=payload["num_failures"],
                                                         statistics=payload["statistics"])
         serialized_task_attempt = dict(TaskAttemptSerializer(task_attempt).data)
         self.send_formatted(text_data=json.dumps({"message": "Task Attempt recorded",
