@@ -94,7 +94,7 @@ AnalyticsConnection::~AnalyticsConnection()
  * @param version_number The version number of the game.
  * @return true if initialization was successful, false otherwise.
  */
-bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number)
+bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number, const bool &debug)
 {
 
     InetAddress address = InetAddress(config.bindaddr, config.port);
@@ -106,6 +106,7 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     _platform = APP_GetDeviceModel();
     _config = std::make_shared<WebSocketConfig>(config);
     _init_data_sent = false;
+    setDebug(debug);
 
     WebSocket::Dispatcher dispatcher = [this](const std::vector<std::byte> &message, Uint64 time)
     {
@@ -132,13 +133,9 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     _webSocket->onReceipt(dispatcher);
     _webSocket->onStateChange(stateCallback);
 
-    if (!open()){
-        return false;
-    }
+    open();
     sendInitialData();
-    if (!close()){
-        return false;
-    }
+    close();
     return true;
 }
 
@@ -210,7 +207,6 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
 {
     if (!_webSocket->isOpen())
     {
-        CULogError("ANALYTICS ERROR: Websocket was not opened before sending");
         if (!open()){
             return false;
         }

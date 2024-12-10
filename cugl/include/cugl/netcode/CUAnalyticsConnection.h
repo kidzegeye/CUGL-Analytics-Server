@@ -161,7 +161,7 @@ namespace cugl
                 ~AnalyticsConnection();
             private:
                 void dispose();
-                bool init(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number);
+                bool init(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number, const bool &debug);
 
 #pragma mark Communication
             public:
@@ -178,10 +178,10 @@ namespace cugl
 #pragma mark Static Allocators
 
             public:
-                static std::shared_ptr<AnalyticsConnection> alloc(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number)
+                static std::shared_ptr<AnalyticsConnection> alloc(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number, const bool &debug=false)
                 {
                     std::shared_ptr<AnalyticsConnection> result = std::make_shared<AnalyticsConnection>();
-                    return (result->init(config, organization_name, game_name, version_number) ? result : nullptr);
+                    return (result->init(config, organization_name, game_name, version_number, debug) ? result : nullptr);
                 }
 
 #pragma mark Accessors

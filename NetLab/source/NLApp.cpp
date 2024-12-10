@@ -173,7 +173,7 @@ void NetApp::updateLoadingScene(float timestep) {
         // Create the analytics server configuration
         auto json = _assets->get<JsonValue>("server");
         _config.set(json->get("analytics server"));
-        _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(_config, this->getOrganization(),  this->getName(), "1.0.0");
+        _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(_config, this->getOrganization(),  this->getName(), "1.0.0", false);
         _analyticsConn->open();
         _mainmenu.init(_assets, _analyticsConn);
         _mainmenu.setSpriteBatch(_batch);
