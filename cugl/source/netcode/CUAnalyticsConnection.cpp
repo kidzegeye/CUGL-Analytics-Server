@@ -52,6 +52,7 @@
 
 #include <SDL_app.h>
 #include <sstream>
+#include <thread>
 
 using namespace cugl::netcode::analytics;
 using namespace std;
@@ -72,7 +73,8 @@ AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr),
                                              _game_name(""),
                                              _version_number(""),
                                              _vendor_id(""),
-                                             _platform("") {}
+                                             _platform(""),
+                                             _init_data_sent(false) {}
 
 /**
  * Deletes the analytics websocket connection, disposing all resources
@@ -103,6 +105,7 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     _vendor_id = hashtool::system_uuid();
     _platform = APP_GetDeviceModel();
     _config = std::make_shared<WebSocketConfig>(config);
+    _init_data_sent = false;
 
     WebSocket::Dispatcher dispatcher = [this](const std::vector<std::byte> &message, Uint64 time)
     {
@@ -132,19 +135,10 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     if (!open()){
         return false;
     }
-
-    std::string initJSONString = "{\"message_type\": \"init\","
-                                 "\"message_payload\": {"
-                                    "\"organization_name\": \"" + _organization_name + "\","
-                                    "\"game_name\": \"" + _game_name + "\","
-                                    "\"version_number\": \"" + _version_number + "\","
-                                    "\"vendor_id\": \"" +  _vendor_id + "\","
-                                    "\"platform\": \"" +  _platform + "\""
-                                 "}}";
-    std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
-
-    send(initPayload);
-
+    sendInitialData();
+    if (!close()){
+        return false;
+    }
     return true;
 }
 
@@ -155,7 +149,8 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
  */
 void AnalyticsConnection::dispose()
 {
-    _webSocket->close();
+    close();
+
     _webSocket = nullptr;
     _organization_name = "";
     _game_name = "";
@@ -163,6 +158,7 @@ void AnalyticsConnection::dispose()
     _vendor_id = "";
     _platform = "";
     _config = nullptr;
+    _init_data_sent = false;
 }
 
 /**
@@ -173,12 +169,15 @@ void AnalyticsConnection::dispose()
 bool AnalyticsConnection::open()
 {
     _webSocket->open(_config->secure);
+
     while (!_webSocket->isOpen())
     {
         // Normally should be CONNECTING
         if (_webSocket->getState() == WebSocket::State::CLOSED || _webSocket->getState() == WebSocket::State::FAILED){
             return false;
         }
+            std::this_thread::sleep_for(100ms);
+
     }
     return true;
 }
@@ -193,6 +192,10 @@ bool AnalyticsConnection::close()
     _webSocket->close();
     while (!(_webSocket->getState() == WebSocket::State::CLOSED))
     {
+        std::this_thread::sleep_for(100ms);
+    }
+    if (getDebug()){
+        CULog("Websocket closed");
     }
     return true;
 }
@@ -253,6 +256,25 @@ void AnalyticsConnection::setDebug(bool flag)
 bool AnalyticsConnection::getDebug()
 {
     return _webSocket->getDebug();
+}
+
+/**
+ */
+
+bool AnalyticsConnection::sendInitialData(){
+    std::string initJSONString = "{\"message_type\": \"init\","
+                                 "\"message_payload\": {"
+                                    "\"organization_name\": \"" + _organization_name + "\","
+                                    "\"game_name\": \"" + _game_name + "\","
+                                    "\"version_number\": \"" + _version_number + "\","
+                                    "\"vendor_id\": \"" +  _vendor_id + "\","
+                                    "\"platform\": \"" +  _platform + "\""
+                                 "}}";
+    std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
+    if (!_init_data_sent){
+        _init_data_sent = send(initPayload);
+    }
+    return _init_data_sent;
 }
 
 /**

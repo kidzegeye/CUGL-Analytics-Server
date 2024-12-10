@@ -28,7 +28,8 @@ namespace cugl
         {
             class Task
             {
-
+            private:
+                std::string _name;
             public:
                 Task() : _name("") {}
         
@@ -51,9 +52,6 @@ namespace cugl
                 }
 
                 std::string getName() const { return _name; }
-
-            private:
-                std::string _name;
             };
 
             class TaskAttempt
@@ -68,6 +66,16 @@ namespace cugl
                     NOT_STARTED
                 };
 
+            private:
+                std::shared_ptr<Task> _task;
+                std::string _uuid;
+                std::shared_ptr<JsonValue> _taskStatistics;
+                int _numFailures;
+                Status _status;
+                std::string _startTime;
+                std::string _endTime;
+
+            public:
                 TaskAttempt() : _task(nullptr),
                                 _uuid(""),
                                 _taskStatistics(nullptr),
@@ -133,19 +141,19 @@ namespace cugl
                 void setStatus(Status status) { _status = status; }
                 std::shared_ptr<JsonValue> getTaskStatistics() const { return _taskStatistics; }
                 void setTaskStatistics(std::shared_ptr<JsonValue> taskStatistics) { _taskStatistics = taskStatistics; }
-
-            private:
-                std::shared_ptr<Task> _task;
-                std::string _uuid;
-                std::shared_ptr<JsonValue> _taskStatistics;
-                int _numFailures;
-                Status _status;
-                std::string _startTime;
-                std::string _endTime;
             };
 
             class AnalyticsConnection
             {
+            private:
+                std::shared_ptr<WebSocket> _webSocket;
+                std::shared_ptr<WebSocketConfig> _config;
+                std::string _organization_name;
+                std::string _game_name;
+                std::string _version_number;
+                std::string _vendor_id;
+                std::string _platform;       
+                bool _init_data_sent;   
 
 #pragma mark Constructors
             public:
@@ -200,20 +208,12 @@ namespace cugl
                 bool getDebug();
 
 #pragma mark AnalyticsData
+                bool sendInitialData();
                 bool addTask(const std::shared_ptr<Task> &task);
                 bool addTasks(const std::vector<std::shared_ptr<Task>> &tasks);
                 bool addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
                 bool syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
-                bool recordAction(const std::shared_ptr<JsonValue> &actionBlob); // Add Action Data here
-               
-private:
-                std::shared_ptr<WebSocket> _webSocket;
-                std::shared_ptr<WebSocketConfig> _config;
-                std::string _organization_name;
-                std::string _game_name;
-                std::string _version_number;
-                std::string _vendor_id;
-                std::string _platform;                
+                bool recordAction(const std::shared_ptr<JsonValue> &actionBlob); // Add Action Data here      
             };
         }
     } // namespace netcode
