@@ -139,9 +139,11 @@ bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
  * Disposes of all (non-static) resources allocated to this mode.
  */
 void MenuScene::dispose() {
+    _analyticsConn = nullptr;
     if (_active) {
         removeAllChildren();
         _active = false;
+        _userAction=nullptr;
         for (auto task : _taskAttempts) {
             task = nullptr;
         }

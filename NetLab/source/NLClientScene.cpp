@@ -117,6 +117,7 @@ bool ClientScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const 
  * Disposes of all (non-static) resources allocated to this mode.
  */
 void ClientScene::dispose() {
+    _analyticsConn = nullptr;
     if (_active) {
         removeAllChildren();
         _network = nullptr;

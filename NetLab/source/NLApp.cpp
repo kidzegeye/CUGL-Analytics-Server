@@ -75,6 +75,7 @@ void NetApp::onStartup() {
  */
 void NetApp::onShutdown() {
     _loading.dispose();
+    _mainmenu.dispose();
     _gameplay.dispose();
     _hostgame.dispose();
     _joingame.dispose();

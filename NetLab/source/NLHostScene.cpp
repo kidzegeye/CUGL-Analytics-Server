@@ -121,6 +121,7 @@ bool HostScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
  * Disposes of all (non-static) resources allocated to this mode.
  */
 void HostScene::dispose() {
+    _analyticsConn = nullptr;
     if (_active) {
         removeAllChildren();
         _network = nullptr;

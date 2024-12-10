@@ -173,6 +173,7 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
  * Disposes of all (non-static) resources allocated to this mode.
  */
 void GameScene::dispose() {
+    _analyticsConn = nullptr;
     if (_active) {
         removeAllChildren();
         _network = nullptr;
