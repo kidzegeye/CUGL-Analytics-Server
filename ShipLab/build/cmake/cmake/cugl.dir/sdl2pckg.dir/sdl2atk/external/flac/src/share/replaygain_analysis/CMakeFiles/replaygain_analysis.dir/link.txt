@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libreplaygain_analysis.a "CMakeFiles/replaygain_analysis.dir/Users/kiduszegeye/Desktop/Cornell/CS_5999/CUGL-Analytics-Server/cugl/sdlapp/external/flac/src/share/replaygain_analysis/replaygain_analysis.c.o"
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libreplaygain_analysis.a
