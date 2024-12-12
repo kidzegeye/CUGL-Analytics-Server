@@ -54,7 +54,9 @@
 #include <sstream>
 #include <thread>
 
-using namespace cugl::netcode::analytics;
+using namespace cugl;
+using namespace netcode;
+using namespace analytics;
 using namespace std;
 
 #pragma mark Constructors
@@ -108,27 +110,9 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
     _init_data_sent = false;
     setDebug(debug);
 
-    WebSocket::Dispatcher dispatcher = [this](const std::vector<std::byte> &message, Uint64 time)
-    {
-        std::ostringstream disp;
-        for (const auto &byte : message)
-        {
-            disp << static_cast<char>(byte);
-        }
+    WebSocket::Dispatcher dispatcher = [this](const std::vector<std::byte> &message, Uint64 time) { onReceiptCallback(message, time);};
 
-        std::shared_ptr<JsonValue> responseJSON = JsonValue::allocWithJson(disp.str());
-        CULog("ANALYTICS RESPONSE: %s", responseJSON->toString().c_str());
-        if (responseJSON->has("error"))
-        {
-            std::string errorMessage = responseJSON->get("error")->asString();
-            throw(errorMessage);
-        }
-    };
-
-    WebSocket::StateCallback stateCallback = [this](const WebSocket::State state)
-    {
-        CULog("State change: %d", state);
-    };
+    WebSocket::StateCallback stateCallback = [this](const WebSocket::State state) {onStateChangeCallback(state);};
 
     _webSocket->onReceipt(dispatcher);
     _webSocket->onStateChange(stateCallback);
@@ -157,6 +141,8 @@ void AnalyticsConnection::dispose()
     _config = nullptr;
     _init_data_sent = false;
 }
+
+#pragma mark Communication
 
 /**
  * Opens the WebSocket connection.
@@ -233,6 +219,29 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
     }
     return true;
 }
+#pragma mark Callbacks
+
+void onReceiptCallback(const std::vector<std::byte> &message, Uint64 time) {
+        std::ostringstream disp;
+        for (const auto &byte : message)
+        {
+            disp << static_cast<char>(byte);
+        }
+
+        std::shared_ptr<JsonValue> responseJSON = JsonValue::allocWithJson(disp.str());
+        CULog("ANALYTICS RESPONSE: %s", responseJSON->toString().c_str());
+        if (responseJSON->has("error"))
+        {
+            std::string errorMessage = responseJSON->get("error")->asString();
+            throw(errorMessage);
+        }
+    };
+   
+void onStateChangeCallback(const WebSocket::State state){
+    CULog("State change: %d", state);
+}
+
+#pragma mark Accessors
 
 /**
  * Sets the debug flag for the WebSocket.
@@ -256,6 +265,7 @@ bool AnalyticsConnection::getDebug()
 
 /**
  */
+#pragma mark AnalyticsData
 
 bool AnalyticsConnection::sendInitialData(){
     std::string initJSONString = "{\"message_type\": \"init\","

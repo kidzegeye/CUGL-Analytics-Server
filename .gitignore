@@ -48,3 +48,4 @@ gen/
 compile_commands.json
 .cache/
 .vscode/
+build/

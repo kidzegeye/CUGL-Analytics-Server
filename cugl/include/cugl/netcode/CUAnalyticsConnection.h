@@ -173,7 +173,11 @@ namespace cugl
             
                 bool send(std::shared_ptr<JsonValue> &data); // This is the helper function to send data
 
+#pragma mark Callbacks
 
+void onReceiptCallback(const std::vector<std::byte> &message, Uint64 time);
+   
+void onStateChangeCallback(const WebSocket::State state);
                 
 #pragma mark Static Allocators
 
