@@ -221,7 +221,7 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
 }
 #pragma mark Callbacks
 
-void onReceiptCallback(const std::vector<std::byte> &message, Uint64 time) {
+void AnalyticsConnection::onReceiptCallback(const std::vector<std::byte> &message, Uint64 time) {
         std::ostringstream disp;
         for (const auto &byte : message)
         {
@@ -237,7 +237,7 @@ void onReceiptCallback(const std::vector<std::byte> &message, Uint64 time) {
         }
     };
    
-void onStateChangeCallback(const WebSocket::State state){
+void AnalyticsConnection::onStateChangeCallback(const WebSocket::State state){
     CULog("State change: %d", state);
 }
 

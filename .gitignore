@@ -40,8 +40,11 @@ python-server/venv/
 python-server/dataset/
 
 cugl/external/
+
 .DS_Store
 /__pycache__/
+cugl/build/cmake/cmake
+cugl/build/cmake/build-debug
 NetLab/build/cmake/cmake
 NetLab/build/cmake/build-debug
 ShipLab/build/cmake/cmake
