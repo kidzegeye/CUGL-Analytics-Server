@@ -42,7 +42,10 @@ python-server/dataset/
 cugl/external/
 .DS_Store
 /__pycache__/
-NetLab/build/
+NetLab/build/cmake/cmake
+NetLab/build/cmake/build-debug
+ShipLab/build/cmake/cmake
+ShipLab/build/cmake/build-debug
 gen/
 
 compile_commands.json

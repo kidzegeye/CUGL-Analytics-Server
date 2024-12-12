@@ -1,2 +1,0 @@
-/Users/kiduszegeye/Desktop/Cornell/CS 5999/lab1/ShipLab/build/cmake/build-debug/cugl.dir/sdl2pckg.dir/sdl2/CMakeFiles/CheckOBJC/CMakeFiles/edit_cache.dir
-/Users/kiduszegeye/Desktop/Cornell/CS 5999/lab1/ShipLab/build/cmake/build-debug/cugl.dir/sdl2pckg.dir/sdl2/CMakeFiles/CheckOBJC/CMakeFiles/rebuild_cache.dir
