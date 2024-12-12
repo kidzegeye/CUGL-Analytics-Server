@@ -3,10 +3,10 @@
 //  Cornell University Game Library (CUGL)
 //
 //  This class provides the ability to keep track of Game Analytics. Analytics such
-//  as Tasks, TaskAttempts and Actions can be recorded and sent to a postgres server.
-//  It can also be used to keep track of session data. So every user session can be
-//  logged using this class. This clas makes use of CUWebSocket class to connect to
-//  the python backend server which then stores the analytics to a postgreSQL database.
+//  as Tasks, TaskAttempts and Actions can be recorded and sent to an external server.
+//  It can also be used to keep track of play session data. So every user's session can be
+//  logged using this class. This class makes use of CUWebSocket class to connect to
+//  an external server which then stores the analytics to a Postgres database.
 //
 //  This class uses our standard shared-pointer architecture.
 //
@@ -42,8 +42,9 @@
 //
 //      3. This notice may not be removed or altered from any source distribution.
 //
-//  Author:
-//  Version:
+//  Author: Shivam Thakkar, Kidus Zegeye, Cody Zheng
+//  Version: 12/21/24 (CUGL 3.0 reorganization)
+//
 #include <cugl/netcode/CUNetworkLayer.h>
 #include <cugl/core/assets/CUJsonValue.h>
 #include <cugl/netcode/CUAnalyticsConnection.h>
