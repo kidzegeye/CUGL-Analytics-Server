@@ -78,6 +78,6 @@ class TaskAttempt(models.Model):
 
 class Action(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    task_attempt = models.ForeignKey(TaskAttempt, null=True, blank=True, on_delete=models.CASCADE)
+    task_attempts = models.ManyToManyField(TaskAttempt, blank=True)
     json_blob = models.JSONField(default=dict)
     timestamp = models.DateTimeField(default=now)

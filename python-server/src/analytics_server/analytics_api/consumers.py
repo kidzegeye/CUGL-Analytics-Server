@@ -218,22 +218,16 @@ class MainConsumer(WebsocketConsumer):
         else:
             self.session = Session.objects.create(user=user)
 
-        task_attempt = None
-        if payload.get("task_attempt_uuid") is not None:
-            task_attempt = TaskAttempt.objects.filter(task_attempt_uuid=payload["task_attempt_uuid"]).first()
-            if not task_attempt:
-                self.send_formatted(text_data=json.dumps(
-                    {"error": f"Task attempt with id '{payload['task_attempt_uuid']}' not found.\
-                      Not processing request."}))
-                return
-
         action = Action.objects.create(session=self.session,
-                                       task_attempt=task_attempt,
                                        json_blob=payload["data"]
                                        )
+
+        if payload.get("task_attempt_uuids") is not None:
+            action.task_attempts.add(TaskAttempt.objects.filter(task_attempt_uuid__in=payload["task_attempt_uuids"]))
+            action.save()
+
         serialized_action = dict(ActionSerializer(action).data)
-        self.send_formatted(text_data=json.dumps({"message": "Action recorded",
-                                        "data": serialized_action}))
+        self.send_formatted(text_data=json.dumps({"message": "Action recorded", "data": serialized_action}))
 
     def check_fields(self, payload, fields):
         fields_missing = []
