@@ -53,7 +53,6 @@
 
 #include <SDL_app.h>
 #include <memory>
-#include <numeric>
 #include <sstream>
 #include <thread>
 
@@ -91,12 +90,14 @@ AnalyticsConnection::~AnalyticsConnection()
 
 /**
  * Initializes the AnalyticsConnection with the given websocket configuration along
- * with the game MetaData.
+ * with the game MetaData. Opens the connection in order to send intialization data to the
+ * analytics server.
  *
  * @param config The WebSocket configuration.
  * @param organization_name The name of the organization.
  * @param game_name The name of the game.
  * @param version_number The version number of the game.
+ * @param debug  Whether to log debug messages from the connection
  * @return true if initialization was successful, false otherwise.
  */
 bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number, const bool &debug)
@@ -223,6 +224,12 @@ bool AnalyticsConnection::send(std::shared_ptr<JsonValue> &data)
 }
 #pragma mark Callbacks
 
+/**
+ * Callback function that logs responses from the analytics server
+ *
+ * @param message The message received from the server
+ * @param time The time when the message was received
+ */
 void AnalyticsConnection::onReceiptCallback(const std::vector<std::byte> &message, Uint64 time) {
         std::ostringstream disp;
         for (const auto &byte : message)
@@ -238,7 +245,12 @@ void AnalyticsConnection::onReceiptCallback(const std::vector<std::byte> &messag
             throw(errorMessage);
         }
     };
-   
+
+/**
+ * Callback function that logs state changes in the websocket connection
+ *
+ * @param state The new websocket state
+ */
 void AnalyticsConnection::onStateChangeCallback(const WebSocket::State state){
     CULog("State change: %d", state);
 }
@@ -246,40 +258,46 @@ void AnalyticsConnection::onStateChangeCallback(const WebSocket::State state){
 #pragma mark Accessors
 
 /**
- * Sets the debug flag for the WebSocket.
- *
- * @param flag The debug flag to set.
- */
+* Toggles the debugging status of this connection.
+*
+* If debugging is active, connections will be quite verbose
+*
+* @param flag  Whether to activate debugging
+*/
 void AnalyticsConnection::setDebug(bool flag)
 {
     _webSocket->setDebug(flag);
 }
 
 /**
- * Gets the current debug flag status.
- *
- * @return true if debugging is enabled, false otherwise.
- */
+* Returns the debugging status of this connection.
+*
+* If debugging is active, connections will be quite verbose
+*
+* @return the debugging status of this connection.
+*/
 bool AnalyticsConnection::getDebug()
 {
     return _webSocket->getDebug();
 }
 
-/**
- */
 #pragma mark AnalyticsData
-
+/**
+* Sends initialization data to the analytics server.
+*
+* @return true if initialization data has been sent successfully 
+*/
 bool AnalyticsConnection::sendInitialData(){
-    std::string initJSONString = "{\"message_type\": \"init\","
-                                 "\"message_payload\": {"
-                                    "\"organization_name\": \"" + _organization_name + "\","
-                                    "\"game_name\": \"" + _game_name + "\","
-                                    "\"version_number\": \"" + _version_number + "\","
-                                    "\"vendor_id\": \"" +  _vendor_id + "\","
-                                    "\"platform\": \"" +  _platform + "\""
-                                 "}}";
-    std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
     if (!_init_data_sent){
+        std::string initJSONString = "{\"message_type\": \"init\","
+                                    "\"message_payload\": {"
+                                        "\"organization_name\": \"" + _organization_name + "\","
+                                        "\"game_name\": \"" + _game_name + "\","
+                                        "\"version_number\": \"" + _version_number + "\","
+                                        "\"vendor_id\": \"" +  _vendor_id + "\","
+                                        "\"platform\": \"" +  _platform + "\""
+                                    "}}";
+        std::shared_ptr<JsonValue> initPayload = JsonValue::allocWithJson(initJSONString);
         _init_data_sent = send(initPayload);
     }
     return _init_data_sent;
@@ -353,7 +371,7 @@ bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &tas
 
 /**
  * Synchronizes a task attempt with the analytics database. This updates the
- * status of a specific taskAttempt
+ * data of a specific taskAttempt on the analytics server
  *
  * @param taskAttempt The task attempt to synchronize.
  * @return true if the synchronization was successful, false otherwise.
@@ -374,10 +392,10 @@ bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &ta
 }
 
 /**
- * Records an action in the analytics database. Actions
+ * Records an action in the analytics database.
  *
  * @param actionBlob The JSON data representing the action.
- * @param relatedTaskAttemptss The TaskAttempts related to this action.
+ * @param relatedTaskAttempts The TaskAttempts related to this action.
  * @return true if the action was successfully recorded, false otherwise.
  */
 bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> relatedTaskAttempts)

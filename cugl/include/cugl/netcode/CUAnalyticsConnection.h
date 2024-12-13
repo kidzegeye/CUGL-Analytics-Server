@@ -337,50 +337,141 @@ namespace cugl
 /**
 * This class represents the connection to an external gameplay analytics server.
 *
-* The main use for the AnalyticsConnection class is to send live gameplay data to an external analytics server,
+* The main use for the AnalyticsConnection class is to send live gameplay data called Actions to an external analytics server,
 * which can be used for analyzing how players behave in certain parts of the game.
+*
 * The AnalyticsConnection class can be used to define ingame tasks/quests using {@link Task} objects and then
-* record statistics for each run of a task via {@link TaskAttempt} objects.
+* record statistics for each run of a task via {@link TaskAttempt} objects. Each Action contains a {@link cugl#JsonValue} with
+* miscellaneous data representing the player's actions, and can be optionally linked to one or more active TaskAttempts. Each time
+* this client connects to a server, a new Session is created which is linked to the Actions and TaskAttempts made during
+* the Session. Sessions are automatically ended upon disconnection from the server.
+*
+* The AnalyticsConnection uses the {@link WebSocket} class to make the connection to an 
+* external server. Because of this, it is completely unsafe it to be used on the stack. For
+* that reason, this class hides the initialization methods (and the constructors
+* create uninitialized connections). You are forced to go through the static
+* allocator {@link #alloc} to create instances of this class.
 */
 class AnalyticsConnection
 {
 private:
+/** The websocket connection used to communicate with an external analytics server */
 std::shared_ptr<WebSocket> _webSocket;
+/** The configuration of the websocket connection */
 std::shared_ptr<WebSocketConfig> _config;
+/** The name of the game's organization */
 std::string _organization_name;
+/** The name of the game */
 std::string _game_name;
+/** The version number of the game */
 std::string _version_number;
+/** The unique vendor id of the player's device */
 std::string _vendor_id;
+/** The hardware platform of the player's device */
 std::string _platform;       
+/** Indicates if the initialization data has been sent to the server already. */
 bool _init_data_sent;   
 
 #pragma mark Constructors
 public:
+/**
+ * Creates a degenerate websocket connection along with empty initializations for gameMetaData.
+ *
+ * This object has not been initialized with a {@link NetcodeConfig} and cannot
+ * be used.
+ *
+ * You should NEVER USE THIS CONSTRUCTOR. All connections should be created by
+ * the static constructor {@link #alloc} instead.
+ */
 AnalyticsConnection();
+/**
+ * Deletes the analytics websocket connection, disposing all resources
+ */
 ~AnalyticsConnection();
+
 private:
-void dispose();
+/**
+ * Initializes the AnalyticsConnection with the given websocket configuration along
+ * with the game MetaData. Opens the connection in order to send intialization data to the
+ * analytics server.
+ *
+ * @param config The WebSocket configuration.
+ * @param organization_name The name of the organization.
+ * @param game_name The name of the game.
+ * @param version_number The version number of the game.
+ * @param debug  Whether to log debug messages from the connection
+ * @return true if initialization was successful, false otherwise.
+ */
 bool init(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number, const bool &debug);
+
+
+/**
+ * Disposes of the AnalyticsConnection resources.
+ *
+ * Closes the WebSocket and resets member variables to their default values.
+ */
+void dispose();
 
 #pragma mark Communication
 public:
+
+/**
+ * Opens the WebSocket connection.
+ *
+ * @return true if the connection was successfully opened.
+ */
 bool open();
 
+/**
+ * Closes the WebSocket connection.
+ *
+ * @return true if the connection was successfully closed.
+ */
 bool close();
 
 private:
 
+/**
+ * Sends data to the WebSocket server.
+ *
+ * @param data The JSON data to send.
+ * @return true if the data was successfully sent, false otherwise.
+ */
 bool send(std::shared_ptr<JsonValue> &data); // This is the helper function to send data
 
 #pragma mark Callbacks
 
+/**
+ * Callback function that logs responses from the analytics server
+ *
+ * @param message The message received from the server
+ * @param time The time when the message was received
+ */
 void onReceiptCallback(const std::vector<std::byte> &message, Uint64 time);
 
+/**
+ * Callback function that logs state changes in the websocket connection
+ *
+ * @param state The new websocket state
+ */
 void onStateChangeCallback(const WebSocket::State state);
 
 #pragma mark Static Allocators
 
 public:
+
+/**
+ * Allocates a new  AnalyticsConnection with the given websocket configuration along
+ * with the game MetaData. Opens the connection in order to send intialization data to the
+ * analytics server.
+ *
+ * @param config The WebSocket configuration.
+ * @param organization_name The name of the organization.
+ * @param game_name The name of the game.
+ * @param version_number The version number of the game.
+ * @param debug  Whether to log debug messages from the connection.
+ * @return a newly allocated analytics connection
+ */
 static std::shared_ptr<AnalyticsConnection> alloc(const WebSocketConfig &config, const std::string &organization_name, const std::string &game_name, const std::string &version_number, const bool &debug=false)
 {
     std::shared_ptr<AnalyticsConnection> result = std::make_shared<AnalyticsConnection>();
@@ -393,32 +484,76 @@ std::shared_ptr<WebSocket> getWebsocketConnection(){
     return _webSocket;
 }
 /**
-    * Toggles the debugging status of this connection.
-    *
-    * If debugging is active, connections will be quite verbose
-    *
-    * @param flag  Whether to activate debugging
-    */
+* Toggles the debugging status of this connection.
+*
+* If debugging is active, connections will be quite verbose
+*
+* @param flag  Whether to activate debugging
+*/
 void setDebug(bool flag);
 
 /**
-    * Returns the debugging status of this connection.
-    *
-    * If debugging is active, connections will be quite verbose
-    *
-    * @return the debugging status of this connection.
-    */
+* Returns the debugging status of this connection.
+*
+* If debugging is active, connections will be quite verbose
+*
+* @return the debugging status of this connection.
+*/
 bool getDebug();
 
 #pragma mark AnalyticsData
+
+/**
+* Sends initialization data to the analytics server.
+*
+* @return true if initialization data has been sent successfully 
+*/
 bool sendInitialData();
+
+/**
+ * Adds a task to the analytics database.
+ *
+ * @param task The task to add.
+ * @return true if the task was successfully added, false otherwise.
+ */
 bool addTask(const std::shared_ptr<Task> &task);
+
+/**
+ * Adds multiple tasks to the analytics database.
+ *
+ * @param tasks The list of tasks to add.
+ * @return true if all tasks were successfully added, false otherwise.
+ */
 bool addTasks(const std::vector<std::shared_ptr<Task>> &tasks);
+
+/**
+ * Adds a task attempt to the analytics database.
+ *
+ * @param taskAttempt The task attempt to add.
+ * @return true if the task attempt was successfully added, false otherwise.
+ */
 bool addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
+
+/**
+ * Synchronizes a task attempt with the analytics database. This updates the
+ * data of a specific taskAttempt on the analytics server
+ *
+ * @param taskAttempt The task attempt to synchronize.
+ * @return true if the synchronization was successful, false otherwise.
+ */
 bool syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
+
+/**
+ * Records an action in the analytics database.
+ *
+ * @param actionBlob The JSON data representing the action.
+ * @param relatedTaskAttempts The TaskAttempts related to this action.
+ * @return true if the action was successfully recorded, false otherwise.
+ */
 bool recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> relatedTaskAttempts = std::vector<std::shared_ptr<TaskAttempt>>()); // Add Action Data here      
+            
             };
-        }
+        } // namespace analytics
     } // namespace netcode
 } // namespace cugl
 
