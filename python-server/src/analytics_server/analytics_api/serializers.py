@@ -7,6 +7,9 @@ can have multiple serializers that format the data in different ways. Serializer
 can also use the serializers of some of the fields that are being serialized. The simple
 serializers defined in this file typically don't serialize any foreign fields, as
 to prevent deeply nested payloads.
+
+Author:  Kidus Zegeye
+Version: 12/21/24
 """
 from analytics_server.analytics_api.models import Organization, Game, User, Session, Task, TaskAttempt, Action
 from rest_framework import serializers

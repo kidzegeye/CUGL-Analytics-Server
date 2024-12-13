@@ -3,6 +3,9 @@ Database models for the analytics server
 
 Each class represents a table in the database with the columns
 written as attributes.
+
+Author:  Kidus Zegeye
+Version: 12/21/24
 """
 from django.db import models
 from django.utils.timezone import now
@@ -108,7 +111,7 @@ class Session(models.Model):
 
     # A reference to the user that is playing the game
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    
+
     # The start time of the session
     started_at = models.DateTimeField(default=now)
 
@@ -132,7 +135,7 @@ class Task(models.Model):
         """
         # The name of the task table
         db_table = 'analytics_api_task'
-        
+
         # Constraint that enforces a unique task_name for a given game
         constraints = [
             models.UniqueConstraint(fields=['task_name', 'game'], name='unique task')

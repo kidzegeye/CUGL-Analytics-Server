@@ -1,26 +1,45 @@
+"""
+Consumer methods to implement the websocket connection
+
+Handles connecting, disconnecting, and receiving messages
+
+Author:  Kidus Zegeye
+Version: 12/21/24
+"""
 import json
 from analytics_server.analytics_api.models import Organization, Game, User, Session, Task, TaskAttempt, Action
 from analytics_server.analytics_api.serializers import OrganizationSerializer, GameSerializer, UserSerializer, SessionSerializer, TaskSerializer, TaskAttemptSerializer, ActionSerializer
 from channels.generic.websocket import WebsocketConsumer
 from django.utils.timezone import now
 import logging
+
+# Logger to log debug messages to the console
 logger = logging.getLogger('django')
 
 
 class MainConsumer(WebsocketConsumer):
-
+    """
+    The main consumer class that handles all websocket connections
+    for the analytics server
+    """
     def connect(self):
         """
-        Starts the websocket connection
+        Starts the websocket connection. The connection is persistent
+        until disconnected by the client or this server
         """
         self.accept()
         self.session = None
 
     def disconnect(self, close_code):
         """
-        Ends the websocket connection
-        """
+        Ends the websocket connection.
 
+        This ends the current session and any `pending` task attempts.
+        Pending task attempts are given the `preempted` status
+
+        :param close_code:  The websocket close code
+        :type close_code:   ``int``
+        """
         if self.session is not None and not self.session.ended:
             # End active task attempts. 
             TaskAttempt.objects.filter(session=self.session, status=TaskAttempt.Status.PENDING).update(status=TaskAttempt.Status.PREEMPED)
@@ -38,14 +57,25 @@ class MainConsumer(WebsocketConsumer):
 
     def receive(self, text_data=None, bytes_data=None):
         """
-        Receives a message on the websocket for recording an action
+        Receives a message sent to the websocket
+
+        Messages can be received in text or bytes form. The message should be
+        formatted with the following fields, along with specific fields for
+        the chosen message type which is defined in later functions.
 
         Message format:
-        {   "message_type" : <init|task|task_attempt|sync_task_attempt|action>
+        {
+            "message_type" : <init|task|task_attempt|sync_task_attempt|action>,
             "message_payload": {
                 <message_type specific fields>
             }
         }
+
+        :param text_data:    Received data in text form
+        :type text_data:     ``string``
+
+        :param bytes_data:   Received data in bytes form
+        :type bytes_data:    ``bytes``
         """
         if text_data:
             self.is_bytes = False
@@ -73,6 +103,25 @@ class MainConsumer(WebsocketConsumer):
                 self.handle_action(payload["message_payload"])
 
     def handle_init(self, payload):
+        """
+        Helper function for handling `init` messages
+
+        These messages initialize the organization, game, and user
+        in the database. It is fully idempotent, so it is safe to
+        send this message on every game startup.
+
+        Payload format:
+        {
+            "organization_name": str,
+            "game_name": str,
+            "verison_number": str,
+            "vendor_id": str,
+            "platform": str
+        }
+
+        :param payload:     Dictionary with init-specific fields
+        :type payload:      ``dict``
+        """
         missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
@@ -112,6 +161,25 @@ class MainConsumer(WebsocketConsumer):
                                                   }))
 
     def handle_task(self, payload):
+        """
+        Helper function for handling `task` messages
+
+        These messages add a new task into the database.
+        It is fully idempotent, so it is safe to send this message on every game startup.
+
+        Payload format:
+        {
+            "organization_name": str,
+            "game_name": str,
+            "verison_number": str,
+            "vendor_id": str,
+            "platform": str,
+            "task_name": str
+        }
+
+        :param payload:     Dictionary with task-specific fields
+        :type payload:      ``dict``
+        """
         missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
@@ -128,12 +196,36 @@ class MainConsumer(WebsocketConsumer):
                                                   "data": serialized_task}))
 
     def handle_task_attempt(self, payload):
+        """
+        Helper function for handling `task_attempt` messages
+
+        These messages add a new task_attempt into the database. Each task_attempt
+        includes a statistics field which is a json object. These are miscellaneous
+        aggregate data for a task_attempt, and can have their defaults sent here.
+
+        Payload format:
+        {
+            "organization_name": str,
+            "game_name": str,
+            "verison_number": str,
+            "vendor_id": str,
+            "platform": str,
+            "task_name": str,
+            "task_attempt_uuid": str,
+            "status": <"not_started" | "pending" | "suceeded" | "failed" | "preempted">,
+            "statistics": <json_blob>,
+            "num_failures": int
+        }
+
+        :param payload:     Dictionary with task_attempt-specific fields
+        :type payload:      ``dict``
+        """
         missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name", "task_attempt_uuid", "status", "statistics", "num_failures"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        
+
         success, val = self.get_org_game_user(payload)
         if not success:
             return
@@ -144,13 +236,13 @@ class MainConsumer(WebsocketConsumer):
             self.send_formatted(text_data=json.dumps({"error": f"Task does not exist: '{payload['task_name']}'.\
                                                                Not processing request."}))
             return
-        
+
         if not any(payload["status"] in choice for choice in TaskAttempt.Status.choices):
             self.send_formatted(text_data=json.dumps({"error": f"Invalid status: '{payload['status']}'.\
                                                        Must be one of {TaskAttempt.Status.choices}\
                                                                Not processing request."}))
             return
-        
+
         temp_session = Session.objects.filter(user=user, ended=False).last()
         if temp_session is not None:
             self.session = temp_session
@@ -168,6 +260,24 @@ class MainConsumer(WebsocketConsumer):
                                                   "data": serialized_task_attempt}))
 
     def handle_sync_task_attempt(self, payload):
+        """
+        Helper function for handling `sync_task_attempt` messages
+
+        These messages update an existing task_attempt in the database. Does not 
+        allow updating the state if the state is terminal. This method is useful
+        for updating aggregate statistics, num_failures, and task_attempt states.
+
+        Payload format:
+        {
+            "task_attempt_uuid": str,
+            "status": <"not_started" | "pending" | "suceeded" | "failed" | "preempted">,
+            "statistics": <json_blob>,
+            "num_failures": int
+        }
+
+        :param payload:     Dictionary with task_attempt-specific fields
+        :type payload:      ``dict``
+        """
         missing_fields, fields = self.check_fields(payload, ["task_attempt_uuid", "status", "statistics", "num_failures"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
@@ -201,12 +311,34 @@ class MainConsumer(WebsocketConsumer):
                                                   "data": serialized_task_attempt}))
 
     def handle_action(self, payload):
+        """
+        Helper function for handling `action` messages
+
+        These messages add a new action into the database. Each action
+        comes with a json object in its data field which details what the 
+        action was. Each action can optionally include a list of task_attempt_uuids
+        to add context on what the action's goals were.
+
+        Payload format:
+        {
+            "organization_name": str,
+            "game_name": str,
+            "verison_number": str,
+            "vendor_id": str,
+            "platform": str,
+            "data": <json_blob>,
+            "task_attempt_uuids": [str]
+        }
+
+        :param payload:     Dictionary with action-specific fields
+        :type payload:      ``dict``
+        """
         missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "data", "task_attempt_uuids"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
             return
-        
+
         success, val = self.get_org_game_user(payload)
         if not success:
             return
@@ -229,6 +361,18 @@ class MainConsumer(WebsocketConsumer):
         self.send_formatted(text_data=json.dumps({"message": "Action recorded", "data": serialized_action}))
 
     def check_fields(self, payload, fields):
+        """
+        Checks that the given payload has all of the required fields
+
+        :param payload:     Dictionary received from the websocket
+        :type payload:      ``dict``
+
+        :param fields:     List of required fields
+        :type fields:      ``list`` of ``str``
+
+        :return:           Pair of whether the payload was missing fields and the specific missing fields
+        :rtype:            ``bool``,``str``
+        """
         fields_missing = []
         missing_fields = False
         output = ""
@@ -242,6 +386,15 @@ class MainConsumer(WebsocketConsumer):
         return missing_fields, output
 
     def send_formatted(self, text_data, close=False):
+        """
+        Sends textual data to a client in bytes form
+
+        :param text_data:   Textual data to be sent
+        :type text_data:    ``str``
+
+        :param close:       Whether to close the connection after sending
+        :type close:        ``bool``
+        """
         if self.is_bytes:
             bytes_data = text_data.encode("utf-8")
             self.send(bytes_data=bytes_data, close=close)
@@ -249,6 +402,18 @@ class MainConsumer(WebsocketConsumer):
             self.send(text_data=text_data, close=close)
 
     def get_org_game_user(self, payload):
+        """
+        Retrieves the organization, game, and user from a payload. Abstracted
+        from the above message functions because its used so much. Payload
+        must contain the keys 'organization_name', 'version_number',
+        'game_name', 'vendor_id', and 'platform'.
+
+        :param payload:     Dictionary received from the websocket
+        :type payload:      ``dict``
+
+        :return:            Pair of whether the retrieval was successful and a triple of the organization, game, and user
+        :rtype:             ``bool``,``triple`` of ``Organization``, ``Game``, ``User``
+        """
         organization = Organization.objects.filter(organization_name=payload["organization_name"]).first()
         if not organization:
             self.send_formatted(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['organization_name']}'.\

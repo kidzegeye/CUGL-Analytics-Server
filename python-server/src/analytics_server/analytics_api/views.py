@@ -3,6 +3,9 @@ Viewsets for each of the models
 
 Via the Django rest framework, we can use the serializers with the viewsets
 to automatically generate GET, POST, PUT, DELETE endpoints for each model.
+
+Author:  Kidus Zegeye
+Version: 12/21/24
 """
 from rest_framework import viewsets
 from analytics_server.analytics_api import models, serializers
