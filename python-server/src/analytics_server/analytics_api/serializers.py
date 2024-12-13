@@ -70,7 +70,7 @@ class TaskAttemptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TaskAttempt
-        fields = ('task_attempt_uuid', 'task', 'started_at', 'ended_at', 'status', 'num_failures', 'statistics')
+        fields = ('task_attempt_uuid', 'task', 'session', 'started_at', 'ended_at', 'status', 'num_failures', 'statistics')
 
 
 class TaskAttemptSerializerSimple(serializers.ModelSerializer):

@@ -6,10 +6,10 @@ info:
 paths:
   /rest/action/:
     get:
-      operationId: rest_action_list
+      operationId: action_list
       description: API endpoint that allows Actions to be viewed or edited.
       tags:
-      - rest
+      - action
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -24,10 +24,10 @@ paths:
                   $ref: '#/components/schemas/Action'
           description: ''
     post:
-      operationId: rest_action_create
+      operationId: action_create
       description: API endpoint that allows Actions to be viewed or edited.
       tags:
-      - rest
+      - action
       requestBody:
         content:
           application/json:
@@ -53,7 +53,7 @@ paths:
           description: ''
   /rest/action/{id}/:
     get:
-      operationId: rest_action_retrieve
+      operationId: action_retrieve
       description: API endpoint that allows Actions to be viewed or edited.
       parameters:
       - in: path
@@ -63,7 +63,7 @@ paths:
         description: A unique integer value identifying this action.
         required: true
       tags:
-      - rest
+      - action
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -76,7 +76,7 @@ paths:
                 $ref: '#/components/schemas/Action'
           description: ''
     put:
-      operationId: rest_action_update
+      operationId: action_update
       description: API endpoint that allows Actions to be viewed or edited.
       parameters:
       - in: path
@@ -86,7 +86,7 @@ paths:
         description: A unique integer value identifying this action.
         required: true
       tags:
-      - rest
+      - action
       requestBody:
         content:
           application/json:
@@ -111,7 +111,7 @@ paths:
                 $ref: '#/components/schemas/Action'
           description: ''
     patch:
-      operationId: rest_action_partial_update
+      operationId: action_partial_update
       description: API endpoint that allows Actions to be viewed or edited.
       parameters:
       - in: path
@@ -121,7 +121,7 @@ paths:
         description: A unique integer value identifying this action.
         required: true
       tags:
-      - rest
+      - action
       requestBody:
         content:
           application/json:
@@ -145,7 +145,7 @@ paths:
                 $ref: '#/components/schemas/Action'
           description: ''
     delete:
-      operationId: rest_action_destroy
+      operationId: action_destroy
       description: API endpoint that allows Actions to be viewed or edited.
       parameters:
       - in: path
@@ -155,7 +155,7 @@ paths:
         description: A unique integer value identifying this action.
         required: true
       tags:
-      - rest
+      - action
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -165,10 +165,10 @@ paths:
           description: No response body
   /rest/game/:
     get:
-      operationId: rest_game_list
+      operationId: game_list
       description: API endpoint that allows Games to be viewed or edited.
       tags:
-      - rest
+      - game
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -183,10 +183,10 @@ paths:
                   $ref: '#/components/schemas/Game'
           description: ''
     post:
-      operationId: rest_game_create
+      operationId: game_create
       description: API endpoint that allows Games to be viewed or edited.
       tags:
-      - rest
+      - game
       requestBody:
         content:
           application/json:
@@ -212,7 +212,7 @@ paths:
           description: ''
   /rest/game/{id}/:
     get:
-      operationId: rest_game_retrieve
+      operationId: game_retrieve
       description: API endpoint that allows Games to be viewed or edited.
       parameters:
       - in: path
@@ -222,7 +222,7 @@ paths:
         description: A unique integer value identifying this game.
         required: true
       tags:
-      - rest
+      - game
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -235,7 +235,7 @@ paths:
                 $ref: '#/components/schemas/Game'
           description: ''
     put:
-      operationId: rest_game_update
+      operationId: game_update
       description: API endpoint that allows Games to be viewed or edited.
       parameters:
       - in: path
@@ -245,7 +245,7 @@ paths:
         description: A unique integer value identifying this game.
         required: true
       tags:
-      - rest
+      - game
       requestBody:
         content:
           application/json:
@@ -270,7 +270,7 @@ paths:
                 $ref: '#/components/schemas/Game'
           description: ''
     patch:
-      operationId: rest_game_partial_update
+      operationId: game_partial_update
       description: API endpoint that allows Games to be viewed or edited.
       parameters:
       - in: path
@@ -280,7 +280,7 @@ paths:
         description: A unique integer value identifying this game.
         required: true
       tags:
-      - rest
+      - game
       requestBody:
         content:
           application/json:
@@ -304,7 +304,7 @@ paths:
                 $ref: '#/components/schemas/Game'
           description: ''
     delete:
-      operationId: rest_game_destroy
+      operationId: game_destroy
       description: API endpoint that allows Games to be viewed or edited.
       parameters:
       - in: path
@@ -314,7 +314,7 @@ paths:
         description: A unique integer value identifying this game.
         required: true
       tags:
-      - rest
+      - game
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -322,12 +322,12 @@ paths:
       responses:
         '204':
           description: No response body
-  /rest/gamemetadata/:
+  /rest/organization/:
     get:
-      operationId: rest_gamemetadata_list
-      description: API endpoint that allows GameMetaData to be viewed or edited.
+      operationId: organization_list
+      description: API endpoint that allows Organization to be viewed or edited.
       tags:
-      - rest
+      - organization
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -339,24 +339,24 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/GameMetaData'
+                  $ref: '#/components/schemas/Organization'
           description: ''
     post:
-      operationId: rest_gamemetadata_create
-      description: API endpoint that allows GameMetaData to be viewed or edited.
+      operationId: organization_create
+      description: API endpoint that allows Organization to be viewed or edited.
       tags:
-      - rest
+      - organization
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GameMetaData'
+              $ref: '#/components/schemas/Organization'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/GameMetaData'
+              $ref: '#/components/schemas/Organization'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/GameMetaData'
+              $ref: '#/components/schemas/Organization'
         required: true
       security:
       - cookieAuth: []
@@ -367,21 +367,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GameMetaData'
+                $ref: '#/components/schemas/Organization'
           description: ''
-  /rest/gamemetadata/{id}/:
+  /rest/organization/{id}/:
     get:
-      operationId: rest_gamemetadata_retrieve
-      description: API endpoint that allows GameMetaData to be viewed or edited.
+      operationId: organization_retrieve
+      description: API endpoint that allows Organization to be viewed or edited.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this game meta data.
+        description: A unique integer value identifying this organization.
         required: true
       tags:
-      - rest
+      - organization
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -391,31 +391,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GameMetaData'
+                $ref: '#/components/schemas/Organization'
           description: ''
     put:
-      operationId: rest_gamemetadata_update
-      description: API endpoint that allows GameMetaData to be viewed or edited.
+      operationId: organization_update
+      description: API endpoint that allows Organization to be viewed or edited.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this game meta data.
+        description: A unique integer value identifying this organization.
         required: true
       tags:
-      - rest
+      - organization
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GameMetaData'
+              $ref: '#/components/schemas/Organization'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/GameMetaData'
+              $ref: '#/components/schemas/Organization'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/GameMetaData'
+              $ref: '#/components/schemas/Organization'
         required: true
       security:
       - cookieAuth: []
@@ -426,31 +426,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GameMetaData'
+                $ref: '#/components/schemas/Organization'
           description: ''
     patch:
-      operationId: rest_gamemetadata_partial_update
-      description: API endpoint that allows GameMetaData to be viewed or edited.
+      operationId: organization_partial_update
+      description: API endpoint that allows Organization to be viewed or edited.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this game meta data.
+        description: A unique integer value identifying this organization.
         required: true
       tags:
-      - rest
+      - organization
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedGameMetaData'
+              $ref: '#/components/schemas/PatchedOrganization'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedGameMetaData'
+              $ref: '#/components/schemas/PatchedOrganization'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedGameMetaData'
+              $ref: '#/components/schemas/PatchedOrganization'
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -460,20 +460,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GameMetaData'
+                $ref: '#/components/schemas/Organization'
           description: ''
     delete:
-      operationId: rest_gamemetadata_destroy
-      description: API endpoint that allows GameMetaData to be viewed or edited.
+      operationId: organization_destroy
+      description: API endpoint that allows Organization to be viewed or edited.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this game meta data.
+        description: A unique integer value identifying this organization.
         required: true
       tags:
-      - rest
+      - organization
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -483,10 +483,10 @@ paths:
           description: No response body
   /rest/session/:
     get:
-      operationId: rest_session_list
+      operationId: session_list
       description: API endpoint that allows Sessions to be viewed or edited.
       tags:
-      - rest
+      - session
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -501,10 +501,10 @@ paths:
                   $ref: '#/components/schemas/Session'
           description: ''
     post:
-      operationId: rest_session_create
+      operationId: session_create
       description: API endpoint that allows Sessions to be viewed or edited.
       tags:
-      - rest
+      - session
       requestBody:
         content:
           application/json:
@@ -530,7 +530,7 @@ paths:
           description: ''
   /rest/session/{id}/:
     get:
-      operationId: rest_session_retrieve
+      operationId: session_retrieve
       description: API endpoint that allows Sessions to be viewed or edited.
       parameters:
       - in: path
@@ -540,7 +540,7 @@ paths:
         description: A unique integer value identifying this session.
         required: true
       tags:
-      - rest
+      - session
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -553,7 +553,7 @@ paths:
                 $ref: '#/components/schemas/Session'
           description: ''
     put:
-      operationId: rest_session_update
+      operationId: session_update
       description: API endpoint that allows Sessions to be viewed or edited.
       parameters:
       - in: path
@@ -563,7 +563,7 @@ paths:
         description: A unique integer value identifying this session.
         required: true
       tags:
-      - rest
+      - session
       requestBody:
         content:
           application/json:
@@ -588,7 +588,7 @@ paths:
                 $ref: '#/components/schemas/Session'
           description: ''
     patch:
-      operationId: rest_session_partial_update
+      operationId: session_partial_update
       description: API endpoint that allows Sessions to be viewed or edited.
       parameters:
       - in: path
@@ -598,7 +598,7 @@ paths:
         description: A unique integer value identifying this session.
         required: true
       tags:
-      - rest
+      - session
       requestBody:
         content:
           application/json:
@@ -622,7 +622,7 @@ paths:
                 $ref: '#/components/schemas/Session'
           description: ''
     delete:
-      operationId: rest_session_destroy
+      operationId: session_destroy
       description: API endpoint that allows Sessions to be viewed or edited.
       parameters:
       - in: path
@@ -632,7 +632,7 @@ paths:
         description: A unique integer value identifying this session.
         required: true
       tags:
-      - rest
+      - session
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -642,10 +642,10 @@ paths:
           description: No response body
   /rest/task/:
     get:
-      operationId: rest_task_list
+      operationId: task_list
       description: API endpoint that allows Tasks to be viewed or edited.
       tags:
-      - rest
+      - task
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -660,10 +660,10 @@ paths:
                   $ref: '#/components/schemas/Task'
           description: ''
     post:
-      operationId: rest_task_create
+      operationId: task_create
       description: API endpoint that allows Tasks to be viewed or edited.
       tags:
-      - rest
+      - task
       requestBody:
         content:
           application/json:
@@ -689,7 +689,7 @@ paths:
           description: ''
   /rest/task/{id}/:
     get:
-      operationId: rest_task_retrieve
+      operationId: task_retrieve
       description: API endpoint that allows Tasks to be viewed or edited.
       parameters:
       - in: path
@@ -699,7 +699,7 @@ paths:
         description: A unique integer value identifying this task.
         required: true
       tags:
-      - rest
+      - task
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -712,7 +712,7 @@ paths:
                 $ref: '#/components/schemas/Task'
           description: ''
     put:
-      operationId: rest_task_update
+      operationId: task_update
       description: API endpoint that allows Tasks to be viewed or edited.
       parameters:
       - in: path
@@ -722,7 +722,7 @@ paths:
         description: A unique integer value identifying this task.
         required: true
       tags:
-      - rest
+      - task
       requestBody:
         content:
           application/json:
@@ -747,7 +747,7 @@ paths:
                 $ref: '#/components/schemas/Task'
           description: ''
     patch:
-      operationId: rest_task_partial_update
+      operationId: task_partial_update
       description: API endpoint that allows Tasks to be viewed or edited.
       parameters:
       - in: path
@@ -757,7 +757,7 @@ paths:
         description: A unique integer value identifying this task.
         required: true
       tags:
-      - rest
+      - task
       requestBody:
         content:
           application/json:
@@ -781,7 +781,7 @@ paths:
                 $ref: '#/components/schemas/Task'
           description: ''
     delete:
-      operationId: rest_task_destroy
+      operationId: task_destroy
       description: API endpoint that allows Tasks to be viewed or edited.
       parameters:
       - in: path
@@ -791,7 +791,7 @@ paths:
         description: A unique integer value identifying this task.
         required: true
       tags:
-      - rest
+      - task
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -801,10 +801,10 @@ paths:
           description: No response body
   /rest/taskattempt/:
     get:
-      operationId: rest_taskattempt_list
+      operationId: taskattempt_list
       description: API endpoint that allows TaskAttempts to be viewed or edited.
       tags:
-      - rest
+      - taskattempt
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -819,10 +819,10 @@ paths:
                   $ref: '#/components/schemas/TaskAttempt'
           description: ''
     post:
-      operationId: rest_taskattempt_create
+      operationId: taskattempt_create
       description: API endpoint that allows TaskAttempts to be viewed or edited.
       tags:
-      - rest
+      - taskattempt
       requestBody:
         content:
           application/json:
@@ -848,7 +848,7 @@ paths:
           description: ''
   /rest/taskattempt/{id}/:
     get:
-      operationId: rest_taskattempt_retrieve
+      operationId: taskattempt_retrieve
       description: API endpoint that allows TaskAttempts to be viewed or edited.
       parameters:
       - in: path
@@ -858,7 +858,7 @@ paths:
         description: A unique integer value identifying this task attempt.
         required: true
       tags:
-      - rest
+      - taskattempt
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -871,7 +871,7 @@ paths:
                 $ref: '#/components/schemas/TaskAttempt'
           description: ''
     put:
-      operationId: rest_taskattempt_update
+      operationId: taskattempt_update
       description: API endpoint that allows TaskAttempts to be viewed or edited.
       parameters:
       - in: path
@@ -881,7 +881,7 @@ paths:
         description: A unique integer value identifying this task attempt.
         required: true
       tags:
-      - rest
+      - taskattempt
       requestBody:
         content:
           application/json:
@@ -906,7 +906,7 @@ paths:
                 $ref: '#/components/schemas/TaskAttempt'
           description: ''
     patch:
-      operationId: rest_taskattempt_partial_update
+      operationId: taskattempt_partial_update
       description: API endpoint that allows TaskAttempts to be viewed or edited.
       parameters:
       - in: path
@@ -916,7 +916,7 @@ paths:
         description: A unique integer value identifying this task attempt.
         required: true
       tags:
-      - rest
+      - taskattempt
       requestBody:
         content:
           application/json:
@@ -940,7 +940,7 @@ paths:
                 $ref: '#/components/schemas/TaskAttempt'
           description: ''
     delete:
-      operationId: rest_taskattempt_destroy
+      operationId: taskattempt_destroy
       description: API endpoint that allows TaskAttempts to be viewed or edited.
       parameters:
       - in: path
@@ -950,7 +950,7 @@ paths:
         description: A unique integer value identifying this task attempt.
         required: true
       tags:
-      - rest
+      - taskattempt
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -960,10 +960,10 @@ paths:
           description: No response body
   /rest/user/:
     get:
-      operationId: rest_user_list
+      operationId: user_list
       description: API endpoint that allows Users to be viewed or edited.
       tags:
-      - rest
+      - user
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -978,10 +978,10 @@ paths:
                   $ref: '#/components/schemas/User'
           description: ''
     post:
-      operationId: rest_user_create
+      operationId: user_create
       description: API endpoint that allows Users to be viewed or edited.
       tags:
-      - rest
+      - user
       requestBody:
         content:
           application/json:
@@ -1007,7 +1007,7 @@ paths:
           description: ''
   /rest/user/{id}/:
     get:
-      operationId: rest_user_retrieve
+      operationId: user_retrieve
       description: API endpoint that allows Users to be viewed or edited.
       parameters:
       - in: path
@@ -1017,7 +1017,7 @@ paths:
         description: A unique integer value identifying this user.
         required: true
       tags:
-      - rest
+      - user
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -1030,7 +1030,7 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     put:
-      operationId: rest_user_update
+      operationId: user_update
       description: API endpoint that allows Users to be viewed or edited.
       parameters:
       - in: path
@@ -1040,7 +1040,7 @@ paths:
         description: A unique integer value identifying this user.
         required: true
       tags:
-      - rest
+      - user
       requestBody:
         content:
           application/json:
@@ -1065,7 +1065,7 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     patch:
-      operationId: rest_user_partial_update
+      operationId: user_partial_update
       description: API endpoint that allows Users to be viewed or edited.
       parameters:
       - in: path
@@ -1075,7 +1075,7 @@ paths:
         description: A unique integer value identifying this user.
         required: true
       tags:
-      - rest
+      - user
       requestBody:
         content:
           application/json:
@@ -1099,7 +1099,7 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     delete:
-      operationId: rest_user_destroy
+      operationId: user_destroy
       description: API endpoint that allows Users to be viewed or edited.
       parameters:
       - in: path
@@ -1109,7 +1109,7 @@ paths:
         description: A unique integer value identifying this user.
         required: true
       tags:
-      - rest
+      - user
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -1122,90 +1122,84 @@ components:
     Action:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         json_blob: {}
         timestamp:
           type: string
           format: date-time
+        task_attempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskAttemptSerializerSimple'
         session:
-          type: integer
-        task_attempt:
-          type: integer
-          nullable: true
+          $ref: '#/components/schemas/SessionSerializerSimple'
       required:
-      - id
       - session
+      - task_attempts
     Game:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
+        game_name:
+          type: string
         version_number:
           type: string
-        gamemetadata:
-          type: integer
+        organization:
+          $ref: '#/components/schemas/Organization'
       required:
-      - gamemetadata
-      - id
+      - game_name
+      - organization
       - version_number
-    GameMetaData:
+    GameSerializerSimple:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        package_name:
-          type: string
         game_name:
+          type: string
+        version_number:
           type: string
       required:
       - game_name
-      - id
-      - package_name
+      - version_number
+    Organization:
+      type: object
+      properties:
+        organization_name:
+          type: string
+      required:
+      - organization_name
     PatchedAction:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         json_blob: {}
         timestamp:
           type: string
           format: date-time
+        task_attempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskAttemptSerializerSimple'
         session:
-          type: integer
-        task_attempt:
-          type: integer
-          nullable: true
+          $ref: '#/components/schemas/SessionSerializerSimple'
     PatchedGame:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
+        game_name:
+          type: string
         version_number:
           type: string
-        gamemetadata:
-          type: integer
-    PatchedGameMetaData:
+        organization:
+          $ref: '#/components/schemas/Organization'
+    PatchedOrganization:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        package_name:
-          type: string
-        game_name:
+        organization_name:
           type: string
     PatchedSession:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
+        user:
+          $ref: '#/components/schemas/UserSerializerSimple'
+        ended:
+          type: boolean
+          default: false
         started_at:
           type: string
           format: date-time
@@ -1213,27 +1207,22 @@ components:
           type: string
           format: date-time
           nullable: true
-        ended:
-          type: boolean
-          default: false
-        user:
-          type: integer
     PatchedTask:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        name:
+        task_name:
           type: string
-        user:
-          type: integer
+        game:
+          $ref: '#/components/schemas/GameSerializerSimple'
     PatchedTaskAttempt:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
+        task_attempt_uuid:
+          type: string
+        task:
+          $ref: '#/components/schemas/TaskSerializerSimple'
+        session:
+          $ref: '#/components/schemas/SessionSerializerSimple'
         started_at:
           type: string
           format: date-time
@@ -1248,38 +1237,23 @@ components:
           maximum: 2147483647
           minimum: -2147483648
         statistics: {}
-        task:
-          type: integer
-        session:
-          type: integer
     PatchedUser:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         vendor_id:
           type: string
         platform:
-          $ref: '#/components/schemas/PlatformEnum'
+          type: string
         game:
-          type: integer
-    PlatformEnum:
-      enum:
-      - ios
-      - android
-      - other
-      type: string
-      description: |-
-        * `ios` - Ios
-        * `android` - Android
-        * `other` - Other
+          $ref: '#/components/schemas/GameSerializerSimple'
     Session:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
+        user:
+          $ref: '#/components/schemas/UserSerializerSimple'
+        ended:
+          type: boolean
+          default: false
         started_at:
           type: string
           format: date-time
@@ -1287,48 +1261,53 @@ components:
           type: string
           format: date-time
           nullable: true
+      required:
+      - user
+    SessionSerializerSimple:
+      type: object
+      properties:
         ended:
           type: boolean
-          default: false
-        user:
-          type: integer
-      required:
-      - id
-      - user
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
     StatusEnum:
       enum:
       - succeeded
       - failed
       - pending
-      - notstarted
+      - not_started
       - preempted
       type: string
       description: |-
         * `succeeded` - Succeeded
         * `failed` - Failed
         * `pending` - Pending
-        * `notstarted` - Notstarted
+        * `not_started` - Not Started
         * `preempted` - Preemped
     Task:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        name:
+        task_name:
           type: string
-        user:
-          type: integer
+        game:
+          $ref: '#/components/schemas/GameSerializerSimple'
       required:
-      - id
-      - name
-      - user
+      - game
+      - task_name
     TaskAttempt:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
+        task_attempt_uuid:
+          type: string
+        task:
+          $ref: '#/components/schemas/TaskSerializerSimple'
+        session:
+          $ref: '#/components/schemas/SessionSerializerSimple'
         started_at:
           type: string
           format: date-time
@@ -1343,30 +1322,56 @@ components:
           maximum: 2147483647
           minimum: -2147483648
         statistics: {}
-        task:
-          type: integer
-        session:
-          type: integer
       required:
-      - id
       - session
       - status
       - task
+      - task_attempt_uuid
+    TaskAttemptSerializerSimple:
+      type: object
+      properties:
+        task_attempt_uuid:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+      required:
+      - status
+      - task_attempt_uuid
+    TaskSerializerSimple:
+      type: object
+      properties:
+        task_name:
+          type: string
+      required:
+      - task_name
     User:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         vendor_id:
           type: string
         platform:
-          $ref: '#/components/schemas/PlatformEnum'
+          type: string
         game:
-          type: integer
+          $ref: '#/components/schemas/GameSerializerSimple'
       required:
       - game
-      - id
+      - platform
+      - vendor_id
+    UserSerializerSimple:
+      type: object
+      properties:
+        vendor_id:
+          type: string
+        platform:
+          type: string
+      required:
       - platform
       - vendor_id
   securitySchemes:
