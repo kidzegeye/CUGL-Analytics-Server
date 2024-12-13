@@ -334,6 +334,14 @@ namespace cugl
         void setTaskStatistics(std::shared_ptr<JsonValue> taskStatistics) { _taskStatistics = taskStatistics; }
     };
 
+/**
+* This class represents the connection to an external gameplay analytics server.
+*
+* The main use for the AnalyticsConnection class is to send live gameplay data to an external analytics server,
+* which can be used for analyzing how players behave in certain parts of the game.
+* The AnalyticsConnection class can be used to define ingame tasks/quests using {@link Task} objects and then
+* record statistics for each run of a task via {@link TaskAttempt} objects.
+*/
 class AnalyticsConnection
 {
 private:
@@ -408,7 +416,7 @@ bool addTask(const std::shared_ptr<Task> &task);
 bool addTasks(const std::vector<std::shared_ptr<Task>> &tasks);
 bool addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
 bool syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
-bool recordAction(const std::shared_ptr<JsonValue> &actionBlob); // Add Action Data here      
+bool recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> relatedTaskAttempts = std::vector<std::shared_ptr<TaskAttempt>>()); // Add Action Data here      
             };
         }
     } // namespace netcode

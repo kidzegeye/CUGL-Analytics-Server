@@ -52,6 +52,8 @@
 #include <cugl/core/util/CUDebug.h>
 
 #include <SDL_app.h>
+#include <memory>
+#include <numeric>
 #include <sstream>
 #include <thread>
 
@@ -120,7 +122,6 @@ bool AnalyticsConnection::init(const WebSocketConfig &config, const std::string 
 
     open();
     sendInitialData();
-    close();
     return true;
 }
 
@@ -376,10 +377,16 @@ bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &ta
  * Records an action in the analytics database. Actions
  *
  * @param actionBlob The JSON data representing the action.
+ * @param relatedTaskAttemptss The TaskAttempts related to this action.
  * @return true if the action was successfully recorded, false otherwise.
  */
-bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob)
+bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> relatedTaskAttempts)
 {
+    std::shared_ptr<JsonValue> taskAttemptArray = JsonValue::allocArray();
+    for (auto & ta : relatedTaskAttempts) {
+        taskAttemptArray->appendValue(ta->getUUID());
+    }
+
     std::string actionString = "{\"message_type\": \"action\","
                                "\"message_payload\": {"
                                     "\"organization_name\": \"" + _organization_name + "\","
@@ -387,6 +394,7 @@ bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionB
                                     "\"version_number\": \"" + _version_number + "\","
                                     "\"vendor_id\": \"" + _vendor_id + "\","
                                     "\"platform\": \"" + _platform + "\","
+                                    "\"task_attempt_uuids\": " + taskAttemptArray->toString() + ","
                                     "\"data\": " + actionBlob->toString() + 
                                 "}}";
     std::shared_ptr<JsonValue> actionPayload = JsonValue::allocWithJson(actionString);

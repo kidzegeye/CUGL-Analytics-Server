@@ -201,7 +201,7 @@ class MainConsumer(WebsocketConsumer):
                                                   "data": serialized_task_attempt}))
 
     def handle_action(self, payload):
-        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "data"])
+        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "data", "task_attempt_uuids"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
                                                                Not processing request."}))
@@ -221,10 +221,9 @@ class MainConsumer(WebsocketConsumer):
         action = Action.objects.create(session=self.session,
                                        json_blob=payload["data"]
                                        )
-
-        if payload.get("task_attempt_uuids") is not None:
-            action.task_attempts.add(TaskAttempt.objects.filter(task_attempt_uuid__in=payload["task_attempt_uuids"]))
-            action.save()
+        task_attempt_uuids = TaskAttempt.objects.filter(task_attempt_uuid__in=payload["task_attempt_uuids"])
+        if task_attempt_uuids:
+            action.task_attempts.add(*task_attempt_uuids)
 
         serialized_action = dict(ActionSerializer(action).data)
         self.send_formatted(text_data=json.dumps({"message": "Action recorded", "data": serialized_action}))

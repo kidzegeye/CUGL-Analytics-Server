@@ -78,7 +78,7 @@ bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
 
     // Create placeholder key possible actions
     _userAction = JsonValue::allocObject();
-    _userAction->appendChild("", JsonValue::allocNull());
+    _userAction->appendChild("test_action", JsonValue::allocNull());
     // Play around
     _userAction->appendChild("Cody", JsonValue::alloc((std::string)"Cody"));
     
@@ -94,10 +94,10 @@ bool MenuScene::init(const std::shared_ptr<cugl::AssetManager>& assets, const st
     _hostbutton->addListener([this](const std::string& name, bool down) {
         if (down) {
             _choice = Choice::HOST;
-            _userAction->get("")->set((std::string)"Hosted a lobby!");
-            _analyticsConn->recordAction(_userAction);
-            // sync the task Attempt here
             std::shared_ptr<TaskAttempt> taskAtt0 = _taskAttempts[0];
+            _userAction->get("test_action")->set((std::string)"Hosted a lobby!");
+            _analyticsConn->recordAction(_userAction, _taskAttempts);
+            // sync the task Attempt here
             std::shared_ptr<JsonValue> stats0 = taskAtt0->getTaskStatistics();
             long val = stats0->getLong("num_trial") + 1;
             if (!taskAtt0->hasEnded()) {
