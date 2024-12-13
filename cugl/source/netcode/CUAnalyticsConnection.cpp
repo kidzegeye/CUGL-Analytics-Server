@@ -3,7 +3,7 @@
 //  Cornell University Game Library (CUGL)
 //
 //  This class provides the ability to keep track of Game Analytics. Analytics such
-//  as Tasks, TaskAttempts and Actions can be recorded and sent to an external server.
+//  as Tasks, TaskAttempts and actions can be recorded and sent to an external server.
 //  It can also be used to keep track of play session data. So every user's session can be
 //  logged using this class. This class makes use of CUWebSocket class to connect to
 //  an external server which then stores the analytics to a Postgres database.
@@ -69,7 +69,7 @@ using namespace std;
  * be used.
  *
  * You should NEVER USE THIS CONSTRUCTOR. All connections should be created by
- * the static constructor {@link #alloc} instead.
+ * the static constructor {@link alloc} instead.
  */
 AnalyticsConnection::AnalyticsConnection() : _webSocket(nullptr),
                                              _config(nullptr),
@@ -343,10 +343,10 @@ bool AnalyticsConnection::addTasks(const std::vector<std::shared_ptr<Task>> &tas
 };
 
 /**
- * Adds a task attempt to the analytics database.
+ * Adds a TaskAttempt to the analytics database.
  *
- * @param taskAttempt The task attempt to add.
- * @return true if the task attempt was successfully added, false otherwise.
+ * @param taskAttempt The TaskAttempt to add.
+ * @return true if the TaskAttempt was successfully added, false otherwise.
  */
 bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt)
 {
@@ -370,10 +370,10 @@ bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &tas
 }
 
 /**
- * Synchronizes a task attempt with the analytics database. This updates the
+ * Synchronizes a TaskAttempt with the analytics database. This updates the
  * data of a specific taskAttempt on the analytics server
  *
- * @param taskAttempt The task attempt to synchronize.
+ * @param taskAttempt The TaskAttempt to synchronize.
  * @return true if the synchronization was successful, false otherwise.
  */
 bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt)

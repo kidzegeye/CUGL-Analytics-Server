@@ -3,7 +3,7 @@
 //  Cornell University Game Library (CUGL)
 //
 //  This class provides the ability to keep track of Game Analytics. Analytics such
-//  as Tasks, TaskAttempts and Actions can be recorded and sent to an external server.
+//  as Tasks, TaskAttempts and actions can be recorded and sent to an external server.
 //  It can also be used to keep track of play session data. So every user's session can be
 //  logged using this class. This class makes use of CUWebSocket class to connect to
 //  an external server which then stores the analytics to a Postgres database.
@@ -78,7 +78,7 @@ namespace cugl
     /**
     * A class for defining task/quest analytics on the analytics server.
     *
-    * Tasks can be sent to the analytics server {@link AnalyticsConnection#addTask}.
+    * Tasks can be sent to the analytics server {@link addTask}.
     * Once uploaded, the Task object can be used to create {@link TaskAttempt} objects, 
     * which are used for data collecting individual attempts of a task.
     */
@@ -148,31 +148,31 @@ namespace cugl
     * These are linked to a specific {@link Task} object, and contains information
     * on the status of a task, the number of failures, start/completion time, and 
     * miscellaneous data. TaskAttempts are defined in the analytics server's database by using
-    * {@link AnalyticsConnection#addTaskAttempt}, and then updated via {@link AnalyticsConnection#syncTaskAttempt}.
+    * {@link addTaskAttempt}, and then updated via {@link syncTaskAttempt}.
     */
     class TaskAttempt
     {
     public:
         /**
-        * An enum representing the current status of a task attempt
+        * An enum representing the current status of a TaskAttempt
         *
-        * Task attempts with a terminating status can not have their status modified
-        * afterwards. When a session is ended, all pending task attempts become preempted
+        * TaskAttempts with a terminal status can not have their status modified
+        * afterwards. When a session is ended, all pending TaskAttempts become preempted
         */
         enum class Status
         {
-            /** Task attempt which has not been started yet */
+            /** TaskAttempt which has not been started yet */
             NOT_STARTED,
-            /** Task attempt which is currently active */
+            /** TaskAttempt which is currently active */
             PENDING,
 
-            // TERMINATING STATUSES
+            // TERMINAL STATUSES
 
-            /** Task attempt where the task was successfully completed */
+            /** TaskAttempt where the task was successfully completed (**Terminal**)*/
             SUCCEEDED,
-            /** Task attempt where the task has been failed irrevocably */
+            /** TaskAttempt where the task has been failed irrevocably (**Terminal**)*/
             FAILED,
-            /** Task attempt where the player's session disconnected midway */
+            /** TaskAttempt where the player's session disconnected midway (**Terminal**)*/
             PREEMPTED
         };
 
@@ -195,7 +195,7 @@ namespace cugl
         * This object has not been initialized with a uuid and cannot not be used
         *
         * You should NEVER USE THIS CONSTRUCTOR. All connections should be created
-        * by the static constructor {@link #alloc} instead.
+        * by the static constructor {@link alloc} instead.
         */
 
         TaskAttempt() : _task(nullptr),
@@ -225,7 +225,7 @@ namespace cugl
         * Initializes a new TaskAttempt.
         *
         * @param task             The Task being attempted 
-        * @param taskStatistics   The statistics recorded by the task attempt with their default values
+        * @param taskStatistics   The statistics recorded by the TaskAttempt with their default values
         * @return true if initialization was successful
         */
         bool init(const std::shared_ptr<Task> task, std::shared_ptr<JsonValue> taskStatistics)
@@ -242,7 +242,7 @@ namespace cugl
         * Returns a newly allocated TaskAttempt.
         *
         * @param task             The Task being attempted 
-        * @param taskStatistics   The statistics recorded by the task attempt with their default values
+        * @param taskStatistics   The statistics recorded by the TaskAttempt with their default values
         * @return true if initialization was successful
         */
         static std::shared_ptr<TaskAttempt> alloc(const std::shared_ptr<Task> task, std::shared_ptr<JsonValue> taskStatistics)
@@ -268,7 +268,7 @@ namespace cugl
         /**
         * Returns a boolean indicating if the TaskAttempt has ended
         *
-        * @return true if the TaskAttempt is in a terminating state.
+        * @return true if the TaskAttempt is in a terminal state.
         */
         bool hasEnded() const { return _status == Status::SUCCEEDED ||
                                         _status == Status::FAILED ||
@@ -337,20 +337,20 @@ namespace cugl
 /**
 * This class represents the connection to an external gameplay analytics server.
 *
-* The main use for the AnalyticsConnection class is to send live gameplay data called Actions to an external analytics server,
+* The main use for the AnalyticsConnection class is to send live gameplay data called actions to an external analytics server,
 * which can be used for analyzing how players behave in certain parts of the game.
 *
 * The AnalyticsConnection class can be used to define ingame tasks/quests using {@link Task} objects and then
-* record statistics for each run of a task via {@link TaskAttempt} objects. Each Action contains a {@link cugl#JsonValue} with
+* record statistics for each run of a task via {@link TaskAttempt} objects. Each action contains a {@link JsonValue} with
 * miscellaneous data representing the player's actions, and can be optionally linked to one or more active TaskAttempts. Each time
-* this client connects to a server, a new Session is created which is linked to the Actions and TaskAttempts made during
-* the Session. Sessions are automatically ended upon disconnection from the server.
+* this client connects to a server, a new session is created which is linked to the actions and TaskAttempts made during
+* the session. Sessions are automatically ended upon disconnection from the server.
 *
 * The AnalyticsConnection uses the {@link WebSocket} class to make the connection to an 
 * external server. Because of this, it is completely unsafe it to be used on the stack. For
 * that reason, this class hides the initialization methods (and the constructors
 * create uninitialized connections). You are forced to go through the static
-* allocator {@link #alloc} to create instances of this class.
+* allocator {@link alloc} to create instances of this class.
 */
 class AnalyticsConnection
 {
@@ -381,7 +381,7 @@ public:
  * be used.
  *
  * You should NEVER USE THIS CONSTRUCTOR. All connections should be created by
- * the static constructor {@link #alloc} instead.
+ * the static constructor {@link alloc} instead.
  */
 AnalyticsConnection();
 /**
@@ -480,9 +480,15 @@ static std::shared_ptr<AnalyticsConnection> alloc(const WebSocketConfig &config,
 
 #pragma mark Accessors
 
+/**
+* Returns the websocket connection to the analytics server.
+*
+* @return the websocket connection
+*/
 std::shared_ptr<WebSocket> getWebsocketConnection(){
     return _webSocket;
 }
+
 /**
 * Toggles the debugging status of this connection.
 *
@@ -527,18 +533,18 @@ bool addTask(const std::shared_ptr<Task> &task);
 bool addTasks(const std::vector<std::shared_ptr<Task>> &tasks);
 
 /**
- * Adds a task attempt to the analytics database.
+ * Adds a TaskAttempt to the analytics database.
  *
- * @param taskAttempt The task attempt to add.
- * @return true if the task attempt was successfully added, false otherwise.
+ * @param taskAttempt The TaskAttempt to add.
+ * @return true if the TaskAttempt was successfully added, false otherwise.
  */
 bool addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
 
 /**
- * Synchronizes a task attempt with the analytics database. This updates the
+ * Synchronizes a TaskAttempt with the analytics database. This updates the
  * data of a specific taskAttempt on the analytics server
  *
- * @param taskAttempt The task attempt to synchronize.
+ * @param taskAttempt The TaskAttempt to synchronize.
  * @return true if the synchronization was successful, false otherwise.
  */
 bool syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
@@ -550,7 +556,7 @@ bool syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
  * @param relatedTaskAttempts The TaskAttempts related to this action.
  * @return true if the action was successfully recorded, false otherwise.
  */
-bool recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> relatedTaskAttempts = std::vector<std::shared_ptr<TaskAttempt>>()); // Add Action Data here      
+bool recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> relatedTaskAttempts = std::vector<std::shared_ptr<TaskAttempt>>());  
             
             };
         } // namespace analytics
