@@ -79,7 +79,7 @@ protected:
     /** Connection to the analytics server */
     std::shared_ptr<analytics::AnalyticsConnection> _analyticsConn;
     /** Map of tasks to task attempts */
-    std::unordered_map<std::string, std::shared_ptr<analytics::TaskAttempt>>_taskAttempts;
+    std::unordered_map<std::string, std::shared_ptr<analytics::TaskAttempt>> _taskAttempts;
     
 public:
 #pragma mark -
