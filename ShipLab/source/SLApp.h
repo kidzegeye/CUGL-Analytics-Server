@@ -25,6 +25,10 @@ protected:
     std::shared_ptr<cugl::graphics::SpriteBatch> _batch;
     /** The global asset manager */
     std::shared_ptr<cugl::AssetManager> _assets;
+    /** The analytics websocket configuration */
+    cugl::netcode::WebSocketConfig _config;
+    /** The connection to the analytics server */
+    std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection> _analyticsConn;
 
     // Player modes
     /** The primary controller for the game world */

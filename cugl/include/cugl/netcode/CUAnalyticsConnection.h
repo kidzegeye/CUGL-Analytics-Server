@@ -50,6 +50,7 @@
 
 #include <string>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 #include <cugl/netcode/CUWebSocket.h>
 #include <cugl/core/util/CUHashtools.h>
@@ -371,6 +372,8 @@ std::string _vendor_id;
 std::string _platform;       
 /** Indicates if the initialization data has been sent to the server already. */
 bool _init_data_sent;   
+/** The tasks added to the analytics connection. Indexed by task name. */
+std::unordered_map<std::string, std::shared_ptr<Task>> _tasks;
 
 #pragma mark Constructors
 public:
@@ -490,6 +493,15 @@ std::shared_ptr<WebSocket> getWebsocketConnection(){
 }
 
 /**
+* Returns the stored tasks.
+*
+* @return the map of tasks stored
+*/
+std::unordered_map<std::string, std::shared_ptr<Task>> getTasks(){
+    return _tasks;
+}
+
+/**
 * Toggles the debugging status of this connection.
 *
 * If debugging is active, connections will be quite verbose
@@ -517,18 +529,18 @@ bool getDebug();
 bool sendInitialData();
 
 /**
- * Adds a task to the analytics database.
+ * Adds a Task to the analytics database.
  *
- * @param task The task to add.
- * @return true if the task was successfully added, false otherwise.
+ * @param task The Task to add.
+ * @return true if the Task was successfully added, false otherwise.
  */
 bool addTask(const std::shared_ptr<Task> &task);
 
 /**
- * Adds multiple tasks to the analytics database.
+ * Adds multiple Tasks to the analytics database.
  *
- * @param tasks The list of tasks to add.
- * @return true if all tasks were successfully added, false otherwise.
+ * @param tasks The vector of Tasks to add.
+ * @return true if all Tasks were successfully added, false otherwise.
  */
 bool addTasks(const std::vector<std::shared_ptr<Task>> &tasks);
 
@@ -539,6 +551,14 @@ bool addTasks(const std::vector<std::shared_ptr<Task>> &tasks);
  * @return true if the TaskAttempt was successfully added, false otherwise.
  */
 bool addTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
+
+/**
+ * Adds multiple TaskAttempts to the analytics database.
+ *
+ * @param taskAttempts The vector of TaskAttempts to add.
+ * @return true if all TaskAttempts were successfully added, false otherwise.
+ */
+bool addTaskAttempts(const std::vector<std::shared_ptr<TaskAttempt>> &taskAttempts);
 
 /**
  * Synchronizes a TaskAttempt with the analytics database. This updates the

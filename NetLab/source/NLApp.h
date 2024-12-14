@@ -45,6 +45,8 @@ protected:
     std::shared_ptr<cugl::AssetManager> _assets;
     /** The network interface */
     std::shared_ptr<cugl::netcode::NetcodeConnection> _network;
+    /** The analytics websocket configuration */
+    cugl::netcode::WebSocketConfig _config;
     /** The connection to the analytics server */
     std::shared_ptr<cugl::netcode::analytics::AnalyticsConnection> _analyticsConn;
 
@@ -62,9 +64,6 @@ protected:
 
     /** The current active scene */
     State _scene;
-
-    /** The analytics websocket configuration */
-    cugl::netcode::WebSocketConfig _config;
 
 public:
     /**

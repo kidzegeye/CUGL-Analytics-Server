@@ -11,6 +11,7 @@
 //  Version: 1/20/22
 //
 #include "SLApp.h"
+#include "cugl/netcode/CUAnalyticsConnection.h"
 
 using namespace cugl;
 using namespace graphics;
@@ -128,7 +129,14 @@ void ShipApp::update(float timestep) {
         _loading.update(0.01f);
     } else if (!_loaded) {
         _loading.dispose(); // Disables the input listeners in this mode
-        _gameplay.init(_assets);
+        auto json = _assets->get<JsonValue>("server");
+        _config.set(json->get("analytics server"));
+        _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(_config, this->getOrganization(),  this->getName(), "1.0.0", false);
+        _analyticsConn->addTasks({
+         analytics::Task::alloc("Destroy 5 asteroids"),
+         analytics::Task::alloc("Destroy 10 asteroids"),
+         analytics::Task::alloc("Win game")});
+        _gameplay.init(_assets, _analyticsConn);
         _loaded = true;
     } else {
         _gameplay.update(timestep);

@@ -11,11 +11,16 @@
 //  Version: 1/20/22
 //
 #include <cugl/cugl.h>
+#include <memory>
 #include "SLGameScene.h"
+#include "cugl/core/assets/CUJsonValue.h"
+#include "cugl/netcode/CUAnalyticsConnection.h"
 
 using namespace cugl;
 using namespace std;
 using namespace graphics;
+using namespace netcode;
+using namespace analytics;
 using namespace audio;
 using namespace scene2;
 
@@ -35,11 +40,13 @@ using namespace scene2;
  * memory allocation.  Instead, allocation happens in this method.
  *
  * @param assets    The (loaded) assets for this game mode
+ * @param analyticsConnection    The connection to the analytics server
  *
  * @return true if the controller is initialized properly, false otherwise.
  */
-bool GameScene::init(const std::shared_ptr<AssetManager>& assets) {
+bool GameScene::init(const std::shared_ptr<AssetManager>& assets, const std::shared_ptr<AnalyticsConnection>& analyticsConnection) {
     // Initialize the scene to a locked width
+    std::shared_ptr<AnalyticsConnection> _analyticsConn = analyticsConnection;
     Size dimen = Application::get()->getDisplaySize();
     dimen *= SCENE_HEIGHT/dimen.height;
     if (assets == nullptr) {
@@ -84,6 +91,25 @@ bool GameScene::init(const std::shared_ptr<AssetManager>& assets) {
     _game_end_text = TextLayout::allocWithText("", assets->get<Font>("pixel32"));
     
     _collisions.init(getSize());
+
+    // Prepare task attempts
+    auto tasks = _analyticsConn->getTasks();
+
+    std::shared_ptr<JsonValue> tattempt1_stats = JsonValue::allocWithJson("{\"destroyed\": 0}");
+    std::shared_ptr<TaskAttempt> tattempt1 = TaskAttempt::alloc(tasks["Destroy 5 asteroids"], tattempt1_stats);
+
+    std::shared_ptr<JsonValue> tattempt2_stats = JsonValue::allocWithJson("{\"destroyed\": 0}");
+    std::shared_ptr<TaskAttempt> tattempt2 = TaskAttempt::alloc(tasks["Destroy 10 asteroids"], tattempt2_stats);
+
+    std::shared_ptr<JsonValue> tattempt3_stats = JsonValue::allocNull();
+    std::shared_ptr<TaskAttempt> tattempt3 = TaskAttempt::alloc(tasks["Win game"], tattempt3_stats);
+    _taskAttempts = {
+        {"Destroy 5 asteroids", tattempt1},
+        {"Destroy 10 asteroids", tattempt1},
+        {"Win game", tattempt1}
+    };
+
+    _analyticsConn->addTaskAttempts({tattempt1,tattempt2,tattempt3});
     
     reset();
     return true;

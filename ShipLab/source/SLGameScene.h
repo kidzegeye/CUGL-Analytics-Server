@@ -18,9 +18,11 @@
 #include "SLAsteroidSet.h"
 #include "SLInputController.h"
 #include "SLCollisionController.h"
+#include "cugl/netcode/CUAnalyticsConnection.h"
 
 using namespace cugl;
 using namespace graphics;
+using namespace netcode;
 using namespace scene2;
 
 /**
@@ -74,8 +76,10 @@ protected:
     std::shared_ptr<audio::Sound> _laser;
     /** The sound of a photon-asteroid collision */
     std::shared_ptr<audio::Sound> _blast;
-
-
+    /** Connection to the analytics server */
+    std::shared_ptr<analytics::AnalyticsConnection> _analyticsConn;
+    /** Map of tasks to task attempts */
+    std::unordered_map<std::string, std::shared_ptr<analytics::TaskAttempt>>_taskAttempts;
     
 public:
 #pragma mark -
@@ -108,11 +112,13 @@ public:
      * us to have a non-pointer reference to this controller, reducing our
      * memory allocation.  Instead, allocation happens in this method.
      *
-     * @param assets    The (loaded) assets for this game mode
+     * @param assets                 The (loaded) assets for this game mode
+     * @param analyticsConnection    The connection to the analytics server
+     *
      *
      * @return true if the controller is initialized properly, false otherwise.
      */
-    bool init(const std::shared_ptr<AssetManager>& assets);
+    bool init(const std::shared_ptr<AssetManager>& assets, const std::shared_ptr<analytics::AnalyticsConnection>& analyticsConnection);
 
     
 #pragma mark -

@@ -322,8 +322,11 @@ bool AnalyticsConnection::addTask(const std::shared_ptr<Task> &task)
                              "}}";
 
     std::shared_ptr<JsonValue> taskPayload = JsonValue::allocWithJson(taskString);
-
-    return send(taskPayload);
+    bool success = send(taskPayload);
+    if (success){
+        _tasks[task->getName()] = task;
+    }
+    return success;
 }
 
 /**
@@ -367,6 +370,21 @@ bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &tas
     std::shared_ptr<JsonValue> taskAttemptPayload = JsonValue::allocWithJson(taskAttemptString);
 
     return send(taskAttemptPayload);
+}
+
+/**
+ * Adds multiple TaskAttempts to the analytics database.
+ *
+ * @param taskAttempts The vector of TaskAttempts to add.
+ * @return true if all TaskAttempts were successfully added, false otherwise.
+ */
+bool AnalyticsConnection::addTaskAttempts(const std::vector<std::shared_ptr<TaskAttempt>> &taskAttempts){
+    bool success = true;
+    for (const std::shared_ptr<TaskAttempt> &taskAttempt : taskAttempts)
+    {
+        success = success && addTaskAttempt(taskAttempt);
+    }
+    return success;
 }
 
 /**
