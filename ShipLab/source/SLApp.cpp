@@ -128,8 +128,10 @@ void ShipApp::update(float timestep) {
     if (!_loaded && _loading.isActive()) {
         _loading.update(0.01f);
     } else if (!_loaded) {
+        std::string temp = "Not a string";
         _loading.dispose(); // Disables the input listeners in this mode
-        auto json = _assets->get<JsonValue>("server");
+        netcode::NetworkLayer::start(netcode::NetworkLayer::Log::INFO);
+        std::shared_ptr<JsonValue> json = _assets->get<JsonValue>("server");
         _config.set(json->get("analytics server"));
         _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(_config, this->getOrganization(),  this->getName(), "1.0.0", false);
         _analyticsConn->addTasks({
