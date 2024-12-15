@@ -16,6 +16,7 @@ services:
       test: pg_isready -U postgres
 
   main:
+    image: kzeg/analytics-server
     build:
       context: .
       dockerfile: Dockerfile
