@@ -132,6 +132,7 @@ void ShipApp::update(float timestep) {
         _loading.dispose(); // Disables the input listeners in this mode
         netcode::NetworkLayer::start(netcode::NetworkLayer::Log::INFO);
         std::shared_ptr<JsonValue> json = _assets->get<JsonValue>("server");
+        // CULog("json is: %s", json->toString().c_str());
         _config.set(json->get("analytics server"));
         _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(_config, this->getOrganization(),  this->getName(), "1.0.0", false);
         _analyticsConn->addTasks({

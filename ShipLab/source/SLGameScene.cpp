@@ -101,12 +101,17 @@ bool GameScene::init(const std::shared_ptr<AssetManager>& assets, const std::sha
     std::shared_ptr<JsonValue> tattempt2_stats = JsonValue::allocWithJson("{\"destroyed\": 0}");
     std::shared_ptr<TaskAttempt> tattempt2 = TaskAttempt::alloc(tasks["Destroy 10 asteroids"], tattempt2_stats);
 
-    std::shared_ptr<JsonValue> tattempt3_stats = JsonValue::allocNull();
+    std::shared_ptr<JsonValue> tattempt3_stats = JsonValue::allocObject();
     std::shared_ptr<TaskAttempt> tattempt3 = TaskAttempt::alloc(tasks["Win game"], tattempt3_stats);
+
+    tattempt1->setStatus(TaskAttempt::Status::PENDING);
+    tattempt2->setStatus(TaskAttempt::Status::PENDING);
+    tattempt3->setStatus(TaskAttempt::Status::PENDING);
+
     _taskAttempts = {
         {"Destroy 5 asteroids", tattempt1},
-        {"Destroy 10 asteroids", tattempt1},
-        {"Win game", tattempt1}
+        {"Destroy 10 asteroids", tattempt2},
+        {"Win game", tattempt3}
     };
 
     _analyticsConn->addTaskAttempts({tattempt1,tattempt2,tattempt3});
@@ -175,15 +180,46 @@ void GameScene::update(float timestep) {
         // Move photons
         _photons.update(getSize());
         
-        
+        // get taskAttempt objs
+        std::shared_ptr<TaskAttempt> taskAttempt1 = _taskAttempts["Destroy 5 asteroids"];
+        std::shared_ptr<TaskAttempt> taskAttempt2 = _taskAttempts["Destroy 10 asteroids"];
+        std::shared_ptr<TaskAttempt> taskAttempt3 = _taskAttempts["Win game"];
         // Check for collisions and play sound
         if (_collisions.resolveCollision(_ship, _asteroids)) {
             AudioEngine::get()->play("bang", _bang, false, _bang->getVolume(), true);
         }
         if (_collisions.resolveCollision(_photons, _asteroids)) {
             AudioEngine::get()->play("blast", _blast, false, _blast->getVolume(), true);
+            // sync the task Attempt here
+            std::shared_ptr<JsonValue> stats1 = taskAttempt1->getTaskStatistics();
+            std::shared_ptr<JsonValue> stats2 = taskAttempt2->getTaskStatistics();
+            CULog("statistics: %s", stats2->toString().c_str());
+            long val = stats2->getLong("destroyed") + 1;
+            if (!taskAttempt1->hasEnded()) {
+                if (val == 5) {
+                    taskAttempt1->setStatus(TaskAttempt::Status::SUCCEEDED);
+                }
+                stats1->get("destroyed")->set(val);
+                stats2->get("destroyed")->set(val);
+                CULog("statistics: %s", stats2->toString().c_str());             
+                taskAttempt1->setTaskStatistics(stats1);
+                taskAttempt2->setTaskStatistics(stats2);
+                _analyticsConn->syncTaskAttempt(taskAttempt1);
+                _analyticsConn->syncTaskAttempt(taskAttempt2);
+            }
+            else if (!taskAttempt2->hasEnded()) {
+                if (val == 10) {
+                    taskAttempt2->setStatus(TaskAttempt::Status::SUCCEEDED);
+                }
+                stats2->get("destroyed")->set(val);
+                taskAttempt2->setTaskStatistics(stats2);
+                _analyticsConn->syncTaskAttempt(taskAttempt2);
+            }
+
             if (_asteroids.isEmpty()){
                 game_status=1;
+                taskAttempt3->setStatus(TaskAttempt::Status::SUCCEEDED);
+                _analyticsConn->syncTaskAttempt(taskAttempt3);
                 return;
             }
         }
@@ -192,6 +228,12 @@ void GameScene::update(float timestep) {
         _text->setText(strtool::format("Health %d", _ship->getHealth()));
         _text->layout();
         if (_ship->getHealth()==0){
+            taskAttempt1->setStatus(TaskAttempt::Status::FAILED);
+            taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
+            taskAttempt3->setStatus(TaskAttempt::Status::FAILED);
+            _analyticsConn->syncTaskAttempt(taskAttempt1);
+            _analyticsConn->syncTaskAttempt(taskAttempt2);
+            _analyticsConn->syncTaskAttempt(taskAttempt3);
             game_status=0;
         }
     }
