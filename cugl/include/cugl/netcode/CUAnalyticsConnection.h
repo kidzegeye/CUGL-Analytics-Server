@@ -48,6 +48,7 @@
 #ifndef __CU_ANALYTICS_CONNECTION_H__
 #define __CU_ANALYTICS_CONNECTION_H__
 
+#include "cugl/core/assets/CUJsonValue.h"
 #include <string>
 #include <memory>
 #include <unordered_map>
@@ -226,18 +227,21 @@ namespace cugl
         * Initializes a new TaskAttempt.
         *
         * @param task             The Task being attempted 
-        * @param taskStatistics   The statistics recorded by the TaskAttempt with their default values
+        * @param taskStatistics   The statistics recorded by the TaskAttempt with their default values (*Optional*: Default {})
+        * @param status           The status of the TaskAttempt (*Optional*: Default NOT_STARTED)
+        * @param numFailures      The number of failures during the TaskAttempt (*Optional*: Default 0)
         * @return true if initialization was successful
         */
-        bool init(const std::shared_ptr<Task> task, std::shared_ptr<JsonValue> taskStatistics)
+        bool init(const std::shared_ptr<Task> task, std::shared_ptr<JsonValue> taskStatistics = JsonValue::allocObject(), Status status = Status::NOT_STARTED, int numFailures = 0)
         {
             _task = task;
             _uuid = hashtool::generate_uuid();
             _taskStatistics = taskStatistics;
-            _numFailures = 0;
-            _status = Status::NOT_STARTED;
+            _numFailures = numFailures;
+            _status = status;
             return true;
         };
+        
     public:
         /**
         * Returns a newly allocated TaskAttempt.
