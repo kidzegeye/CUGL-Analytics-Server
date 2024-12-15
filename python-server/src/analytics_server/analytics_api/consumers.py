@@ -86,8 +86,7 @@ class MainConsumer(WebsocketConsumer):
         logger.info(payload)
         missing_fields, fields = self.check_fields(payload, ["message_type", "message_payload"])
         if missing_fields:
-            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}. Not processing request."}))
             return
 
         match payload["message_type"]:
@@ -124,8 +123,7 @@ class MainConsumer(WebsocketConsumer):
         """
         missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform"])
         if missing_fields:
-            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}. Not processing request."}))
             return
 
         organization, _ = Organization.objects.get_or_create(organization_name=payload["organization_name"]
@@ -182,8 +180,7 @@ class MainConsumer(WebsocketConsumer):
         """
         missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name"])
         if missing_fields:
-            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}. Not processing request."}))
             return
 
         success, val = self.get_org_game_user(payload)
@@ -222,8 +219,7 @@ class MainConsumer(WebsocketConsumer):
         """
         missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name", "task_attempt_uuid", "status", "statistics", "num_failures"])
         if missing_fields:
-            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}. Not processing request."}))
             return
 
         success, val = self.get_org_game_user(payload)
@@ -233,14 +229,11 @@ class MainConsumer(WebsocketConsumer):
 
         task = Task.objects.filter(task_name=payload["task_name"], game=game).first()
         if not task:
-            self.send_formatted(text_data=json.dumps({"error": f"Task does not exist: '{payload['task_name']}'.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Task does not exist: '{payload['task_name']}'. Not processing request."}))
             return
 
         if not any(payload["status"] in choice for choice in TaskAttempt.Status.choices):
-            self.send_formatted(text_data=json.dumps({"error": f"Invalid status: '{payload['status']}'.\
-                                                       Must be one of {TaskAttempt.Status.choices}\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Invalid status: '{payload['status']}'. Must be one of {TaskAttempt.Status.choices}. Not processing request."}))
             return
 
         temp_session = Session.objects.filter(user=user, ended=False).last()
@@ -280,24 +273,19 @@ class MainConsumer(WebsocketConsumer):
         """
         missing_fields, fields = self.check_fields(payload, ["task_attempt_uuid", "status", "statistics", "num_failures"])
         if missing_fields:
-            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}. Not processing request."}))
             return
 
         if not any(payload["status"] in choice for choice in TaskAttempt.Status.choices):
-            self.send_formatted(text_data=json.dumps({"error": f"Invalid status: '{payload['status']}'.\
-                                                       Must be one of {TaskAttempt.Status.choices}\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Invalid status: '{payload['status']}'. Must be one of {TaskAttempt.Status.choices}. Not processing request."}))
             return
 
         task_attempt = TaskAttempt.objects.filter(task_attempt_uuid=payload["task_attempt_uuid"]).first()
         if task_attempt is None:
-            self.send_formatted(text_data=json.dumps({"error": f"Task Attempt not found: {payload['task_attempt_uuid']}.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Task Attempt not found: {payload['task_attempt_uuid']}. Not processing request."}))
             return
         if task_attempt.status in ["succeeded", "failed", "preempted"] and task_attempt.status != payload["status"]:
-            self.send_formatted(text_data=json.dumps({"error": f"Can not change already ended Task Attempt status: {task_attempt.status} != {payload['status']}.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Can not change already ended Task Attempt status: {task_attempt.status} != {payload['status']}. Not processing request."}))
             return
 
         task_attempt.status = payload["status"]
@@ -335,8 +323,7 @@ class MainConsumer(WebsocketConsumer):
         """
         missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "data", "task_attempt_uuids"])
         if missing_fields:
-            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}. Not processing request."}))
             return
 
         success, val = self.get_org_game_user(payload)
@@ -416,17 +403,14 @@ class MainConsumer(WebsocketConsumer):
         """
         organization = Organization.objects.filter(organization_name=payload["organization_name"]).first()
         if not organization:
-            self.send_formatted(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['organization_name']}'.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['organization_name']}'. Not processing request."}))
             return False, None
         game = Game.objects.filter(organization=organization, game_name=payload["game_name"], version_number=payload["version_number"]).first()
         if not game:
-            self.send_formatted(text_data=json.dumps({"error": f"Game does not exist: '{payload['game_name']} version {payload['version_number']}'.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"Game does not exist: '{payload['game_name']} version {payload['version_number']}'. Not processing request."}))
             return False, None
         user = User.objects.filter(game=game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
         if not user:
-            self.send_formatted(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['game_name']} version {payload['version_number']}'.\
-                                                               Not processing request."}))
+            self.send_formatted(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['game_name']} version {payload['version_number']}'. Not processing request."}))
             return False, None
         return True, (organization, game, user)
