@@ -46,7 +46,7 @@ using namespace scene2;
  */
 bool GameScene::init(const std::shared_ptr<AssetManager>& assets, const std::shared_ptr<AnalyticsConnection>& analyticsConnection) {
     // Initialize the scene to a locked width
-    std::shared_ptr<AnalyticsConnection> _analyticsConn = analyticsConnection;
+    _analyticsConn = analyticsConnection;
     Size dimen = Application::get()->getDisplaySize();
     dimen *= SCENE_HEIGHT/dimen.height;
     if (assets == nullptr) {
@@ -128,6 +128,11 @@ void GameScene::dispose() {
         removeAllChildren();
         _active = false;
     }
+    _analyticsConn = nullptr;
+    for (auto& [key, value] : _taskAttempts) {
+        value = nullptr;
+    }
+    _taskAttempts.clear();
 }
 
 
@@ -193,7 +198,6 @@ void GameScene::update(float timestep) {
             // sync the task Attempt here
             std::shared_ptr<JsonValue> stats1 = taskAttempt1->getTaskStatistics();
             std::shared_ptr<JsonValue> stats2 = taskAttempt2->getTaskStatistics();
-            CULog("statistics: %s", stats2->toString().c_str());
             long val = stats2->getLong("destroyed") + 1;
             if (!taskAttempt1->hasEnded()) {
                 if (val == 5) {
@@ -201,7 +205,6 @@ void GameScene::update(float timestep) {
                 }
                 stats1->get("destroyed")->set(val);
                 stats2->get("destroyed")->set(val);
-                CULog("statistics: %s", stats2->toString().c_str());             
                 taskAttempt1->setTaskStatistics(stats1);
                 taskAttempt2->setTaskStatistics(stats2);
                 _analyticsConn->syncTaskAttempt(taskAttempt1);
@@ -228,11 +231,17 @@ void GameScene::update(float timestep) {
         _text->setText(strtool::format("Health %d", _ship->getHealth()));
         _text->layout();
         if (_ship->getHealth()==0){
-            taskAttempt1->setStatus(TaskAttempt::Status::FAILED);
-            taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
+            if (!taskAttempt1->hasEnded()) {
+                taskAttempt1->setStatus(TaskAttempt::Status::FAILED);
+                taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
+                _analyticsConn->syncTaskAttempt(taskAttempt1);
+                _analyticsConn->syncTaskAttempt(taskAttempt2);
+            }
+            else if (!taskAttempt2->hasEnded()) {
+                taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
+                _analyticsConn->syncTaskAttempt(taskAttempt2);
+            }
             taskAttempt3->setStatus(TaskAttempt::Status::FAILED);
-            _analyticsConn->syncTaskAttempt(taskAttempt1);
-            _analyticsConn->syncTaskAttempt(taskAttempt2);
             _analyticsConn->syncTaskAttempt(taskAttempt3);
             game_status=0;
         }
