@@ -105,9 +105,6 @@ void GameScene::dispose() {
         _active = false;
     }
     _analyticsConn = nullptr;
-    for (auto& [key, value] : _taskAttempts) {
-        value = nullptr;
-    }
     _taskAttempts.clear();
 }
 
