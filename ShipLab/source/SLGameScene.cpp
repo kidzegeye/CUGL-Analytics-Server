@@ -91,30 +91,6 @@ bool GameScene::init(const std::shared_ptr<AssetManager>& assets, const std::sha
     _game_end_text = TextLayout::allocWithText("", assets->get<Font>("pixel32"));
     
     _collisions.init(getSize());
-
-    // Prepare task attempts
-    auto tasks = _analyticsConn->getTasks();
-
-    std::shared_ptr<JsonValue> tattempt1_stats = JsonValue::allocWithJson("{\"destroyed\": 0}");
-    std::shared_ptr<TaskAttempt> tattempt1 = TaskAttempt::alloc(tasks["Destroy 5 asteroids"], tattempt1_stats);
-
-    std::shared_ptr<JsonValue> tattempt2_stats = JsonValue::allocWithJson("{\"destroyed\": 0}");
-    std::shared_ptr<TaskAttempt> tattempt2 = TaskAttempt::alloc(tasks["Destroy 10 asteroids"], tattempt2_stats);
-
-    std::shared_ptr<JsonValue> tattempt3_stats = JsonValue::allocObject();
-    std::shared_ptr<TaskAttempt> tattempt3 = TaskAttempt::alloc(tasks["Win game"], tattempt3_stats);
-
-    tattempt1->setStatus(TaskAttempt::Status::PENDING);
-    tattempt2->setStatus(TaskAttempt::Status::PENDING);
-    tattempt3->setStatus(TaskAttempt::Status::PENDING);
-
-    _taskAttempts = {
-        {"Destroy 5 asteroids", tattempt1},
-        {"Destroy 10 asteroids", tattempt2},
-        {"Win game", tattempt3}
-    };
-
-    _analyticsConn->addTaskAttempts({tattempt1,tattempt2,tattempt3});
     
     reset();
     return true;
@@ -150,6 +126,29 @@ void GameScene::reset() {
     _asteroids.init(_constants->get("asteroids"));
     game_status=-1;
     displayed_win_loss_text=false;
+    // Prepare task attempts
+    auto tasks = _analyticsConn->getTasks();
+
+    std::shared_ptr<JsonValue> tattempt1_stats = JsonValue::allocWithJson("{\"destroyed\": 0}");
+    std::shared_ptr<TaskAttempt> tattempt1 = TaskAttempt::alloc(tasks["Destroy 5 asteroids"], tattempt1_stats);
+
+    std::shared_ptr<JsonValue> tattempt2_stats = JsonValue::allocWithJson("{\"destroyed\": 0}");
+    std::shared_ptr<TaskAttempt> tattempt2 = TaskAttempt::alloc(tasks["Destroy 10 asteroids"], tattempt2_stats);
+
+    std::shared_ptr<JsonValue> tattempt3_stats = JsonValue::allocObject();
+    std::shared_ptr<TaskAttempt> tattempt3 = TaskAttempt::alloc(tasks["Win game"], tattempt3_stats);
+
+    tattempt1->setStatus(TaskAttempt::Status::PENDING);
+    tattempt2->setStatus(TaskAttempt::Status::PENDING);
+    tattempt3->setStatus(TaskAttempt::Status::PENDING);
+
+    _taskAttempts = {
+        {"Destroy 5 asteroids", tattempt1},
+        {"Destroy 10 asteroids", tattempt2},
+        {"Win game", tattempt3}
+    };
+
+    _analyticsConn->addTaskAttempts({tattempt1,tattempt2,tattempt3});
 }
 
 /**
@@ -162,8 +161,12 @@ void GameScene::reset() {
 void GameScene::update(float timestep) {
     // Read the keyboard for each controller.
     _input.readInput();
-    if (_input.didPressReset()) {
+    if (_debounce <= _debounce_reset){
+        _debounce += timestep;
+    }
+    if (_input.didPressReset() && _debounce > _debounce_reset) {
         reset();
+        _debounce = 0.0;
     }
     if(game_status == -1){
         // Move the ships and photons forward (ignoring collisions)

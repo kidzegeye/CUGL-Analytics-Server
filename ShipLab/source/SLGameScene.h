@@ -80,6 +80,11 @@ protected:
     std::shared_ptr<analytics::AnalyticsConnection> _analyticsConn;
     /** Map of tasks to task attempts */
     std::unordered_map<std::string, std::shared_ptr<analytics::TaskAttempt>> _taskAttempts;
+    /** Amount of time before repeating an action */
+    float _debounce = 0;
+
+    /** Debounce reset threshold (in seconds) */
+    float _debounce_reset = 0.5;
     
 public:
 #pragma mark -
