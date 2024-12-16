@@ -75,6 +75,7 @@ void ShipApp::onShutdown() {
     _gameplay.dispose();
     _assets = nullptr;
     _batch = nullptr;
+    _analyticsConn = nullptr;
 
     // Shutdown input
     Input::deactivate<Keyboard>();
