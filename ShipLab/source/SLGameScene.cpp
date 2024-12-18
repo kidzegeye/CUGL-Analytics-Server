@@ -189,9 +189,14 @@ void GameScene::update(float timestep) {
         std::shared_ptr<TaskAttempt> taskAttempt1 = _taskAttempts["Destroy 5 asteroids"];
         std::shared_ptr<TaskAttempt> taskAttempt2 = _taskAttempts["Destroy 10 asteroids"];
         std::shared_ptr<TaskAttempt> taskAttempt3 = _taskAttempts["Win game"];
+
         // Check for collisions and play sound
         if (_collisions.resolveCollision(_ship, _asteroids)) {
             AudioEngine::get()->play("bang", _bang, false, _bang->getVolume(), true);
+            // create temp action obj
+            std::shared_ptr<JsonValue> action = JsonValue::allocWithJson("{\"Ship Got Hit!\": null}");
+            action->get("Ship Got Hit!")->set("remaining health: " + std::to_string(_ship->getHealth()));
+            _analyticsConn->recordAction(action, {taskAttempt1,taskAttempt2,taskAttempt3});
         }
         if (_collisions.resolveCollision(_photons, _asteroids)) {
             AudioEngine::get()->play("blast", _blast, false, _blast->getVolume(), true);
@@ -231,18 +236,32 @@ void GameScene::update(float timestep) {
         _text->setText(strtool::format("Health %d", _ship->getHealth()));
         _text->layout();
         if (_ship->getHealth()==0){
+            // if (!taskAttempt1->hasEnded()) {
+            //     taskAttempt1->setStatus(TaskAttempt::Status::FAILED);
+            //     taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
+            //     _analyticsConn->syncTaskAttempt(taskAttempt1);
+            //     _analyticsConn->syncTaskAttempt(taskAttempt2);
+            // }
+            // else if (!taskAttempt2->hasEnded()) {
+            //     taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
+            //     _analyticsConn->syncTaskAttempt(taskAttempt2);
+            // }
+            // taskAttempt3->setStatus(TaskAttempt::Status::FAILED);
+            // _analyticsConn->syncTaskAttempt(taskAttempt3);
             if (!taskAttempt1->hasEnded()) {
-                taskAttempt1->setStatus(TaskAttempt::Status::FAILED);
-                taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
+                taskAttempt1->setNumFailures(taskAttempt1->getNumFailures()+1);
+                taskAttempt2->setNumFailures(taskAttempt2->getNumFailures()+1);
                 _analyticsConn->syncTaskAttempt(taskAttempt1);
                 _analyticsConn->syncTaskAttempt(taskAttempt2);
             }
             else if (!taskAttempt2->hasEnded()) {
-                taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
+                taskAttempt2->setNumFailures(taskAttempt2->getNumFailures()+1);
                 _analyticsConn->syncTaskAttempt(taskAttempt2);
             }
-            taskAttempt3->setStatus(TaskAttempt::Status::FAILED);
-            _analyticsConn->syncTaskAttempt(taskAttempt3);
+            if (!taskAttempt3->hasEnded()) {
+                taskAttempt3->setNumFailures(taskAttempt3->getNumFailures()+1);
+                _analyticsConn->syncTaskAttempt(taskAttempt3);
+            }
             game_status=0;
         }
     }
