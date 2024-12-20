@@ -314,11 +314,6 @@ bool AnalyticsConnection::addTask(const std::shared_ptr<Task> &task)
 {
     std::string taskString = "{\"message_type\": \"task\","
                              "\"message_payload\": {"
-                                "\"organization_name\": \"" + _organization_name + "\","
-                                "\"game_name\": \"" + _game_name + "\","
-                                "\"version_number\": \"" + _version_number + "\","
-                                "\"vendor_id\": \"" + _vendor_id + "\","
-                                "\"platform\": \"" + _platform + "\","
                                 "\"task_name\": \"" + task->getName() + "\""
                              "}}";
 
@@ -356,11 +351,6 @@ bool AnalyticsConnection::addTaskAttempt(const std::shared_ptr<TaskAttempt> &tas
 {
     std::string taskAttemptString = "{\"message_type\": \"task_attempt\","
                                     "\"message_payload\": {"
-                                        "\"organization_name\": \"" + _organization_name + "\","
-                                        "\"game_name\": \"" + _game_name + "\","
-                                        "\"version_number\": \"" + _version_number + "\","
-                                        "\"vendor_id\": \"" +  _vendor_id + "\","
-                                        "\"platform\": \"" + _platform + "\","
                                         "\"task_name\": \"" + taskAttempt->getTask()->getName() + "\","
                                         "\"task_attempt_uuid\": \"" + taskAttempt->getUUID() + "\"," +
                                         "\"status\": \"" + taskAttempt->getStatusAsString() + "\","
@@ -426,11 +416,6 @@ bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionB
 
     std::string actionString = "{\"message_type\": \"action\","
                                "\"message_payload\": {"
-                                    "\"organization_name\": \"" + _organization_name + "\","
-                                    "\"game_name\": \"" + _game_name + "\","
-                                    "\"version_number\": \"" + _version_number + "\","
-                                    "\"vendor_id\": \"" + _vendor_id + "\","
-                                    "\"platform\": \"" + _platform + "\","
                                     "\"task_attempt_uuids\": " + taskAttemptArray->toString() + ","
                                     "\"data\": " + actionBlob->toString() + 
                                 "}}";

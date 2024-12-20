@@ -28,6 +28,9 @@ class MainConsumer(WebsocketConsumer):
         until disconnected by the client or this server
         """
         self.accept()
+        self.organization = None
+        self.game = None
+        self.user = None
         self.session = None
 
     def disconnect(self, close_code):
@@ -149,6 +152,9 @@ class MainConsumer(WebsocketConsumer):
             self.session = Session.objects.create(user=user)
         serialized_session = dict(SessionSerializer(self.session).data)
 
+        self.organization = organization
+        self.game = game
+        self.user = user
         self.send_formatted(text_data=json.dumps({"message": "Init recorded",
                                                   "data": {
                                                         "organization": serialized_organization,
@@ -167,27 +173,22 @@ class MainConsumer(WebsocketConsumer):
 
         Payload format:
         {
-            "organization_name": str,
-            "game_name": str,
-            "verison_number": str,
-            "vendor_id": str,
-            "platform": str,
             "task_name": str
         }
 
         :param payload:     Dictionary with task-specific fields
         :type payload:      ``dict``
         """
-        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name"])
+        missing_fields, fields = self.check_fields(payload, ["task_name"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}. Not processing request."}))
             return
 
-        success, val = self.get_org_game_user(payload)
-        if not success:
+        if not self.organization or not self.game or not self.user:
+            self.send_formatted(text_data=json.dumps({"error": "Need to reinitialize connection"}))
             return
-        organization, game, user = val
-        task, _ = Task.objects.get_or_create(task_name=payload["task_name"], game=game)
+
+        task, _ = Task.objects.get_or_create(task_name=payload["task_name"], game=self.game)
         serialized_task = dict(TaskSerializer(task).data)
         self.send_formatted(text_data=json.dumps({"message": "Task recorded",
                                                   "data": serialized_task}))
@@ -202,11 +203,6 @@ class MainConsumer(WebsocketConsumer):
 
         Payload format:
         {
-            "organization_name": str,
-            "game_name": str,
-            "verison_number": str,
-            "vendor_id": str,
-            "platform": str,
             "task_name": str,
             "task_attempt_uuid": str,
             "status": <"not_started" | "pending" | "suceeded" | "failed" | "preempted">,
@@ -217,17 +213,16 @@ class MainConsumer(WebsocketConsumer):
         :param payload:     Dictionary with task_attempt-specific fields
         :type payload:      ``dict``
         """
-        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "task_name", "task_attempt_uuid", "status", "statistics", "num_failures"])
+        missing_fields, fields = self.check_fields(payload, ["task_name", "task_attempt_uuid", "status", "statistics", "num_failures"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}. Not processing request."}))
             return
 
-        success, val = self.get_org_game_user(payload)
-        if not success:
+        if not self.organization or not self.game or not self.user:
+            self.send_formatted(text_data=json.dumps({"error": "Need to reinitialize connection"}))
             return
-        organization, game, user = val
 
-        task = Task.objects.filter(task_name=payload["task_name"], game=game).first()
+        task = Task.objects.filter(task_name=payload["task_name"], game=self.game).first()
         if not task:
             self.send_formatted(text_data=json.dumps({"error": f"Task does not exist: '{payload['task_name']}'. Not processing request."}))
             return
@@ -236,11 +231,11 @@ class MainConsumer(WebsocketConsumer):
             self.send_formatted(text_data=json.dumps({"error": f"Invalid status: '{payload['status']}'. Must be one of {TaskAttempt.Status.choices}. Not processing request."}))
             return
 
-        temp_session = Session.objects.filter(user=user, ended=False).last()
+        temp_session = Session.objects.filter(user=self.user, ended=False).last()
         if temp_session is not None:
             self.session = temp_session
         else:
-            self.session = Session.objects.create(user=user)
+            self.session = Session.objects.create(user=self.user)
         task_attempt, _ = TaskAttempt.objects.get_or_create(
                                                         task=task,
                                                         task_attempt_uuid=payload["task_attempt_uuid"],
@@ -309,11 +304,6 @@ class MainConsumer(WebsocketConsumer):
 
         Payload format:
         {
-            "organization_name": str,
-            "game_name": str,
-            "verison_number": str,
-            "vendor_id": str,
-            "platform": str,
             "data": <json_blob>,
             "task_attempt_uuids": [str]
         }
@@ -321,21 +311,20 @@ class MainConsumer(WebsocketConsumer):
         :param payload:     Dictionary with action-specific fields
         :type payload:      ``dict``
         """
-        missing_fields, fields = self.check_fields(payload, ["organization_name", "game_name", "version_number", "vendor_id", "platform", "data", "task_attempt_uuids"])
+        missing_fields, fields = self.check_fields(payload, ["data", "task_attempt_uuids"])
         if missing_fields:
             self.send_formatted(text_data=json.dumps({"error": f"Missing fields: {fields}. Not processing request."}))
             return
 
-        success, val = self.get_org_game_user(payload)
-        if not success:
+        if not self.organization or not self.game or not self.user:
+            self.send_formatted(text_data=json.dumps({"error": "Need to reinitialize connection"}))
             return
-        organization, game, user = val
 
-        temp_session = Session.objects.filter(user=user, ended=False).last()
+        temp_session = Session.objects.filter(user=self.user, ended=False).last()
         if temp_session is not None:
             self.session = temp_session
         else:
-            self.session = Session.objects.create(user=user)
+            self.session = Session.objects.create(user=self.user)
 
         action = Action.objects.create(session=self.session,
                                        json_blob=payload["data"]
@@ -387,30 +376,3 @@ class MainConsumer(WebsocketConsumer):
             self.send(bytes_data=bytes_data, close=close)
         else:
             self.send(text_data=text_data, close=close)
-
-    def get_org_game_user(self, payload):
-        """
-        Retrieves the organization, game, and user from a payload. Abstracted
-        from the above message functions because its used so much. Payload
-        must contain the keys 'organization_name', 'version_number',
-        'game_name', 'vendor_id', and 'platform'.
-
-        :param payload:     Dictionary received from the websocket
-        :type payload:      ``dict``
-
-        :return:            Pair of whether the retrieval was successful and a triple of the organization, game, and user
-        :rtype:             ``bool``,``triple`` of ``Organization``, ``Game``, ``User``
-        """
-        organization = Organization.objects.filter(organization_name=payload["organization_name"]).first()
-        if not organization:
-            self.send_formatted(text_data=json.dumps({"error": f"Game Meta Data does not exist: '{payload['organization_name']}'. Not processing request."}))
-            return False, None
-        game = Game.objects.filter(organization=organization, game_name=payload["game_name"], version_number=payload["version_number"]).first()
-        if not game:
-            self.send_formatted(text_data=json.dumps({"error": f"Game does not exist: '{payload['game_name']} version {payload['version_number']}'. Not processing request."}))
-            return False, None
-        user = User.objects.filter(game=game, vendor_id=payload["vendor_id"], platform=payload["platform"]).first()
-        if not user:
-            self.send_formatted(text_data=json.dumps({"error": f"User does not exist: '{payload['vendor_id']} on {payload['platform']} for {payload['game_name']} version {payload['version_number']}'. Not processing request."}))
-            return False, None
-        return True, (organization, game, user)
