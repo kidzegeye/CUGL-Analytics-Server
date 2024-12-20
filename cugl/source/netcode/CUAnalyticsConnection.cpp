@@ -241,8 +241,9 @@ void AnalyticsConnection::onReceiptCallback(const std::vector<std::byte> &messag
         CULog("ANALYTICS RESPONSE: %s", responseJSON->toString().c_str());
         if (responseJSON->has("error"))
         {
-            std::string errorMessage = responseJSON->get("error")->asString();
-            throw(errorMessage);
+            //std::string errorMessage = responseJSON->get("error")->asString();
+            //throw(errorMessage);
+            CULog("%s", responseJSON->toString().c_str());
         }
     };
 
