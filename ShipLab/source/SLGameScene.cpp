@@ -100,6 +100,14 @@ bool GameScene::init(const std::shared_ptr<AssetManager>& assets, const std::sha
  * Disposes of all (non-static) resources allocated to this mode.
  */
 void GameScene::dispose() {
+    // When game is closed, mark all active task attempts as FAILED
+    for (const auto& ele : _taskAttempts) {
+        std::shared_ptr<TaskAttempt> tattempt = ele.second;
+        if (!tattempt->hasEnded()) {
+            tattempt->setStatus(TaskAttempt::Status::FAILED);
+            _analyticsConn->syncTaskAttempt(tattempt);
+        }
+    }
     if (_active) {
         removeAllChildren();
         _active = false;
@@ -236,18 +244,6 @@ void GameScene::update(float timestep) {
         _text->setText(strtool::format("Health %d", _ship->getHealth()));
         _text->layout();
         if (_ship->getHealth()==0){
-            // if (!taskAttempt1->hasEnded()) {
-            //     taskAttempt1->setStatus(TaskAttempt::Status::FAILED);
-            //     taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
-            //     _analyticsConn->syncTaskAttempt(taskAttempt1);
-            //     _analyticsConn->syncTaskAttempt(taskAttempt2);
-            // }
-            // else if (!taskAttempt2->hasEnded()) {
-            //     taskAttempt2->setStatus(TaskAttempt::Status::FAILED);
-            //     _analyticsConn->syncTaskAttempt(taskAttempt2);
-            // }
-            // taskAttempt3->setStatus(TaskAttempt::Status::FAILED);
-            // _analyticsConn->syncTaskAttempt(taskAttempt3);
             if (!taskAttempt1->hasEnded()) {
                 taskAttempt1->setNumFailures(taskAttempt1->getNumFailures()+1);
                 taskAttempt2->setNumFailures(taskAttempt2->getNumFailures()+1);
