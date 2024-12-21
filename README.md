@@ -16,16 +16,19 @@ CUGL Analytics Server M.Eng project
 ## Documentation
 
 * REST Api documentation can be found at `http://<url>/api/schema/swagger-ui/`
-* Action-recording websocket can be connected to at `ws://<url>/ws/record-action/session/{session_id}/`
-  * Connection will only be successful if the session given by `session_id` is active.
-  * Sessions will end automatically upon websocket disconnection, a new session will need to be created.
-  * Can record Actions via sending messages with the following JSON input format:
+* The main websocket can be connected to at the base endpoint `ws://<url>/`
+  * Sessions will end automatically upon websocket disconnection.
+  * Messages sent can be received in text or bytes form. 
+  * Nessages sent should be formatted with the following fields, along with specific fields for
+    the chosen message type.
+  * Message format:
     ```json
-        {
-            "task_attempt_id": "<(optional) task_attempt_id>",
-            "data": {
-                    "<fields of your choosing>"
-                  }
+    {
+        "message_type" : <init|task|task_attempt|sync_task_attempt|action>,
+        "message_payload": {
+            <message_type specific fields>
         }
+    }
     ```
-        
+  * To learn more about the message_type specific fields, they are detailed in
+    [./python-server/src/analytics_server/analytics_api/consumers.py](./python-server/src/analytics_server/analytics_api/consumers.py) under each of their handler functions.
