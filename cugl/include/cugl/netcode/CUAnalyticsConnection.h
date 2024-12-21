@@ -580,7 +580,7 @@ bool syncTaskAttempt(const std::shared_ptr<TaskAttempt> &taskAttempt);
  * @param relatedTaskAttempts The TaskAttempts related to this action.
  * @return true if the action was successfully recorded, false otherwise.
  */
-bool recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> relatedTaskAttempts = std::vector<std::shared_ptr<TaskAttempt>>());  
+bool recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> &relatedTaskAttempts = std::vector<std::shared_ptr<TaskAttempt>>());  
             
             };
         } // namespace analytics

@@ -46,7 +46,6 @@ using namespace scene2;
  */
 bool GameScene::init(const std::shared_ptr<AssetManager>& assets, const std::shared_ptr<AnalyticsConnection>& analyticsConnection) {
     // Initialize the scene to a locked width
-    _analyticsConn = analyticsConnection;
     Size dimen = Application::get()->getDisplaySize();
     dimen *= SCENE_HEIGHT/dimen.height;
     if (assets == nullptr) {
@@ -91,7 +90,10 @@ bool GameScene::init(const std::shared_ptr<AssetManager>& assets, const std::sha
     _game_end_text = TextLayout::allocWithText("", assets->get<Font>("pixel32"));
     
     _collisions.init(getSize());
-    
+
+    // Setup analytics connection
+    _analyticsConn = analyticsConnection;
+
     reset();
     return true;
 }
@@ -131,6 +133,7 @@ void GameScene::reset() {
     _asteroids.init(_constants->get("asteroids"));
     game_status=-1;
     displayed_win_loss_text=false;
+    
     // Prepare task attempts
     auto tasks = _analyticsConn->getTasks();
 

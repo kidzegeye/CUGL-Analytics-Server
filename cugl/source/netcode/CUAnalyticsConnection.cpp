@@ -407,7 +407,7 @@ bool AnalyticsConnection::syncTaskAttempt(const std::shared_ptr<TaskAttempt> &ta
  * @param relatedTaskAttempts The TaskAttempts related to this action.
  * @return true if the action was successfully recorded, false otherwise.
  */
-bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> relatedTaskAttempts)
+bool AnalyticsConnection::recordAction(const std::shared_ptr<JsonValue> &actionBlob, const std::vector<std::shared_ptr<TaskAttempt>> &relatedTaskAttempts)
 {
     std::shared_ptr<JsonValue> taskAttemptArray = JsonValue::allocArray();
     for (auto & ta : relatedTaskAttempts) {

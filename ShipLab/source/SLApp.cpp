@@ -129,18 +129,26 @@ void ShipApp::update(float timestep) {
     if (!_loaded && _loading.isActive()) {
         _loading.update(0.01f);
     } else if (!_loaded) {
-        std::string temp = "Not a string";
         _loading.dispose(); // Disables the input listeners in this mode
+
+        // Initializes Analytics Connection
         netcode::NetworkLayer::start(netcode::NetworkLayer::Log::INFO);
         std::shared_ptr<JsonValue> json = _assets->get<JsonValue>("server");
-        // CULog("json is: %s", json->toString().c_str());
+
         _config.set(json->get("analytics server"));
-        _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(_config, this->getOrganization(),  this->getName(), "1.0.0", false);
+        _analyticsConn = cugl::netcode::analytics::AnalyticsConnection::alloc(
+                    _config,
+         this->getOrganization(),
+                 this->getName(),
+            "1.0.0",
+                      false
+        );
         _analyticsConn->addTasks({
          analytics::Task::alloc("Destroy 5 asteroids"),
          analytics::Task::alloc("Destroy 10 asteroids"),
          analytics::Task::alloc("Win game")});
         _gameplay.init(_assets, _analyticsConn);
+
         _loaded = true;
     } else {
         _gameplay.update(timestep);

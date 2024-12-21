@@ -7,16 +7,16 @@
         "max bank": 5.0,
         "max velocity": 10.0,
         "angular damp": 0.875,
-        "fire rate": 20,
+        "fire rate": 5,
         "shadow": 10,
         "sprite cols":  5,
         "sprite size": 18,
         "sprite frame": 9
     },
 	"photons" : {
-		"speed" : 10,
+		"speed" : 20,
 		"mass" : 5,
-		"max age": 100
+		"max age": 30
 	},
 	"asteroids" : {
 		"mass" : 2,
