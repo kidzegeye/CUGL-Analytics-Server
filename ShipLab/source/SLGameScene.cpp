@@ -209,6 +209,7 @@ void GameScene::update(float timestep) {
             action->get("Ship Got Hit!")->set("remaining health: " + std::to_string(_ship->getHealth()));
             _analyticsConn->recordAction(action, {taskAttempt1,taskAttempt2,taskAttempt3});
         }
+
         if (_collisions.resolveCollision(_photons, _asteroids)) {
             AudioEngine::get()->play("blast", _blast, false, _blast->getVolume(), true);
             // sync the task Attempt here
